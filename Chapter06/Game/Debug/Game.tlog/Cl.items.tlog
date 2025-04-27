@@ -1,0 +1,16 @@
+E:\program\C++\code-master\code-master\Chapter06\Actor.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Actor.obj
+E:\program\C++\code-master\code-master\Chapter06\CameraActor.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\CameraActor.obj
+E:\program\C++\code-master\code-master\Chapter06\CircleComponent.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\CircleComponent.obj
+E:\program\C++\code-master\code-master\Chapter06\Component.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Component.obj
+E:\program\C++\code-master\code-master\Chapter06\Game.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Game.obj
+E:\program\C++\code-master\code-master\Chapter06\Main.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Main.obj
+E:\program\C++\code-master\code-master\Chapter06\Math.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Math.obj
+E:\program\C++\code-master\code-master\Chapter06\Mesh.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Mesh.obj
+E:\program\C++\code-master\code-master\Chapter06\MeshComponent.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\MeshComponent.obj
+E:\program\C++\code-master\code-master\Chapter06\MoveComponent.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\MoveComponent.obj
+E:\program\C++\code-master\code-master\Chapter06\PlaneActor.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\PlaneActor.obj
+E:\program\C++\code-master\code-master\Chapter06\Renderer.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Renderer.obj
+E:\program\C++\code-master\code-master\Chapter06\Shader.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Shader.obj
+E:\program\C++\code-master\code-master\Chapter06\SpriteComponent.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\SpriteComponent.obj
+E:\program\C++\code-master\code-master\Chapter06\Texture.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\Texture.obj
+E:\program\C++\code-master\code-master\Chapter06\VertexArray.cpp;E:\program\C++\code-master\code-master\Chapter06\Game\Debug\VertexArray.obj

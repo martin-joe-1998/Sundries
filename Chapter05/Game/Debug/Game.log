@@ -1,0 +1,20 @@
+﻿  Game.cpp
+  VertexArray.cpp
+  Generating Code...
+E:\program\C++\code-master\code-master\Chapter05\Game.cpp(390,1): warning C4172: returning address of local variable or temporary 
+  Game.vcxproj -> E:\program\C++\code-master\code-master\Chapter05\Debug\Game.exe
+  'pwsh.exe' 不是内部或外部命令，也不是可运行的程序
+  或批处理文件。
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\libfreetype-6.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\libogg-0.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\libpng16-16.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\libvorbis-0.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\libvorbisfile-3.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\SDL2.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\SDL2_image.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\SDL2_mixer.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\SDL2_ttf.dll
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\SDL\lib\win\x86\zlib1.dll
+  复制了 10 个文件
+  E:\program\C++\code-master\code-master\Chapter05\\..\external\GLEW\lib\win\x86\glew32.dll
+  复制了 1 个文件
