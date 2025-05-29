@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24aea74b4ba965c469ce54a041956fa8, type: 3}
+  m_Name: AudioClipRefsSO
+  m_EditorClassIdentifier: 
+  footstep:
+  - {fileID: 8300000, guid: 9b243389736fbb443badad6d12991713, type: 3}
+  rain:
+  - {fileID: 8300000, guid: 7ee33cd3d7437484d9c386fb0760a378, type: 3}
+  - {fileID: 8300000, guid: f10e9483952c29942b40f217f916d4ba, type: 3}
+  - {fileID: 8300000, guid: 1f0d8220c9c468d4e9853ad862a481b5, type: 3}
+  ambience:
+  - {fileID: 8300000, guid: 790e4e3235d10d6459964762e9af18a1, type: 3}
+  - {fileID: 8300000, guid: a12556c4b62a94b47990712c4fab49f8, type: 3}
+  - {fileID: 8300000, guid: 2fa715c8c7aa2084cb9a099d873ec22b, type: 3}
