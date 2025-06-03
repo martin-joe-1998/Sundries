@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -6,61 +6,61 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
-// ?SRF•ïŠÜ 3 ˜¢å—v passF
-// BlitStartRenderPassF˜¸?‘œŠ÷“I?F?™t‰?”˜o—ˆiy? Blit ?“ü?—j
-// BlitRenderPassFˆÂ?˜?‘½˜¢Ş??s‘S›  Blit ‘€ì
-// BlitEndRenderPassF«Å??—@“I?‘œÄ Blit ‰ñ?‘œŠ÷
+// è¯¥ SRF åŒ…å« 3 ä¸ªä¸»è¦ pass
+// BlitStartRenderPassï¼šä»æ‘„åƒæœºçš„é¢œè‰²ç¼“å†²æ‹·è´æ•°æ®å‡ºæ¥ï¼ˆå‡†å¤‡ Blit è¾“å…¥çº¹ç†ï¼‰
+// BlitRenderPassï¼šæŒ‰é¡ºåºå¯¹å¤šä¸ªæè´¨æ‰§è¡Œå…¨å± Blit æ“ä½œ
+// BlitEndRenderPassï¼šå°†æœ€ç»ˆå¤„ç†åçš„å›¾åƒå† Blit å›æ‘„åƒæœº
+// è¢«æŒ‚åˆ° URP çš„ Renderer Data èµ„æºä¸­åï¼Œæ¯å¸§ä¼šè‡ªåŠ¨è°ƒç”¨å…¶ Create() å’Œ AddRenderPasses()ã€‚
 public class BlitRendererFeature : ScriptableRendererFeature
 {
-    // ˆê˜¢‘¶?İ ContextContainer ’†“I©’è?ã‰º•¶?C??ŠÇ—?—iUnity “I per-frame ”˜—eŠíj
+    // ç®¡ç† blit ä½¿ç”¨çš„ä¸­é—´çº¹ç†ã€‚ä¼šè¢«æ”¾è¿› ContextContainerï¼ˆUnity çš„ per-frame æ•°æ®å®¹å™¨ï¼‰ï¼Œç”¨äºè·¨å¤šä¸ª RenderPass å…±äº«çŠ¶æ€ã€‚
     public class BlitData : ContextItem, IDisposable
     {
-        // İ‘½Ÿ Blit ‘€ì’†?—¬ì??“ü?oC”ğ–Æ’†??‰Ê”í•¢á³BiPing-Pong ‘o?™tj
-        // RTHandle ¥ Unity “I RenderTexture ••‘•?iŒ×•ª™—¦?”zj
+        // Ping-Pong åŒé‡ç¼“å†²
+        // RTHandle æ˜¯ Unity çš„ RenderTexture å°è£…ç±»ï¼ˆè·¨åˆ†è¾¨ç‡é€‚é…ï¼‰
         RTHandle m_TextureFront;
         RTHandle m_TextureBack;
-        // TextureHandle ¥ RenderGraph —p˜°ŠÇ—?‘œˆË?“I‹å•¿i?????j
+        // TextureHandle æ˜¯ RenderGraph ç”¨äºç®¡ç†å›¾åƒä¾èµ–çš„å¥æŸ„ï¼ˆé€»è¾‘å›¾ç»“æ„ï¼‰
         TextureHandle m_TextureHandleFront;
         TextureHandle m_TextureHandleBack;
 
-        // scaleBias ¥› –‹?”z—p“I
+        // scaleBias æ˜¯å±å¹•é€‚é…ç”¨çš„
         static Vector4 scaleBias = new Vector4(1f, 1f, 0f, 0f);
 
-        // T§“–‘OŒƒŠˆ“I¥?ˆê??—iping-pongj
+        // æ§åˆ¶å½“å‰æ¿€æ´»çš„æ˜¯å“ªä¸€å¼ çº¹ç†ï¼ˆping-pongï¼‰
         bool m_IsFront = true;
 
-        // •\¦“–‘Og—LÁ?‰Êh“I?‘œ‹å•¿
+        // è¡¨ç¤ºå½“å‰â€œæœ‰æ•ˆç»“æœâ€çš„å›¾åƒå¥æŸ„
         public TextureHandle texture;
 
-        // g—p?‘œŠ÷“–‘O“I RenderTextureDescriptor ‰n‰» RTHandle
-        // ‘R@’Ê? renderGraph.ImportTexture ?¬ TextureHandleCˆÈ‹Ÿ RenderGraph g—p
-        // ??İ?—p?ˆê?“I class ”V‘O”í?—p
+        // ä½¿ç”¨æ‘„åƒæœºå½“å‰çš„ RenderTextureDescriptor åˆå§‹åŒ– RTHandle
+        // ç„¶åé€šè¿‡ renderGraph.ImportTexture è½¬æ¢æˆ TextureHandleï¼Œä»¥ä¾› RenderGraph ä½¿ç”¨
+        // æ¯å¸§éœ€è¦è°ƒç”¨ä¸€æ¬¡çš„åˆå§‹åŒ–é€»è¾‘
         public void Init(RenderGraph renderGraph, RenderTextureDescriptor targetDescriptor, string textureName = null)
         {
             var texName = String.IsNullOrEmpty(textureName) ? "_BlitTexture" : textureName;
-            // ‰ï©?d•ª”zÚ¡?‰»“I RTHandleCReAllocateHandleIfNeeded‰ï©?”c texName ’™e?‘S‹Ç?—
+            // ä¼šè‡ªåŠ¨é‡åˆ†é…å°ºå¯¸ä¼˜åŒ–çš„ RTHandleï¼ŒReAllocateHandleIfNeededä¼šè‡ªåŠ¨æŠŠ texName æ³¨å†Œåˆ°å…¨å±€ texture
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_TextureFront, targetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: texName + "Front");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_TextureBack, targetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: texName + "Back");
 
             m_TextureHandleFront = renderGraph.ImportTexture(m_TextureFront);
             m_TextureHandleBack = renderGraph.ImportTexture(m_TextureBack);
-            // ?’u‰n—LÁ?‘œ? m_TextureHandleFront
+            // è®¾ç½®åˆå§‹æœ‰æ•ˆå›¾åƒä¸º m_TextureHandleFront
             texture = m_TextureHandleFront;
         }
 
-        // RenderGraph ‘ü•Û‘¶“–‘O??Œ¹CŠˆÈù—v??d’u
+        // RenderGraph åªä¿å­˜å½“å‰å¸§èµ„æºï¼Œæ‰€ä»¥éœ€è¦æ¯å¸§é‡ç½®
         public override void Reset()
         {
-            // ´‹ó TextureHandle
+            // æ¸…ç©º TextureHandle
             m_TextureHandleFront = TextureHandle.nullHandle;
             m_TextureHandleBack = TextureHandle.nullHandle;
             texture = TextureHandle.nullHandle;
-            // ‰ø? m_IsFront ? trueCdV˜¸ Front ?n
+            // æ¢å¤ m_IsFront ä¸º trueï¼Œé‡æ–°ä» Front å¼€å§‹
             m_IsFront = true;
         }
 
-        // —p˜°?ˆê˜¢ Blit Pass “I?“ü?o??‘Ì
-        // ?ˆê˜¢ blit pass “sù—v’m“¹F—ˆŒ¹?—i’Êí¥ãˆêŸ“I?‰ÊjC?o?—i‘o?™t’†“I?ˆê˜¢jC?—g—p“IŞ?iŞ?’†‰Â”\‰ï?“ü“Á’è shaderj
+        // ç”¨äºæ¯ä¸€ä¸ª Blit Pass çš„è¾“å…¥è¾“å‡ºç»“æ„ä½“
         class PassData
         {
             public TextureHandle source;
@@ -68,115 +68,106 @@ public class BlitRendererFeature : ScriptableRendererFeature
             public Material material;
         }
 
-        // ?‘œŠ÷?‘œ “ texture
+        // æ‘„åƒæœºå›¾åƒ åˆ° texture
         public void RecordBlitColor(RenderGraph renderGraph, ContextContainer frameData)
         {
-            // g—p !IsValid() —ˆ”»’f g?ˆê?“I‹å•¿¥”Û›ß??’u?hB–v?’u?F‰n‰»?—˜a‹å•¿B?’u?F?–¾?ˆê?›ß?y?D?—?Œ¹C‰ÂˆÈ’¼Úg—pB
+            // ä½¿ç”¨ !IsValid() æ¥åˆ¤æ–­ â€œè¿™ä¸€å¸§çš„å¥æŸ„æ˜¯å¦å·²ç»è®¾ç½®è¿‡â€ï¼šæ²¡è®¾ç½®è¿‡ï¼šåˆå§‹åŒ–çº¹ç†å’Œå¥æŸ„ã€‚è®¾ç½®è¿‡ï¼šè¯´æ˜è¿™ä¸€å¸§å·²ç»å‡†å¤‡å¥½çº¹ç†èµ„æºï¼Œå¯ä»¥ç›´æ¥ä½¿ç”¨ã€‚
             if (!texture.IsValid())
             {
-                // \““–‘O?‘œŠ÷“I–Ú??—Ši®iÚ¡A?FŠi®“™j
+                // æ‹¿åˆ°å½“å‰æ‘„åƒæœºçš„ç›®æ ‡çº¹ç†æ ¼å¼ï¼ˆå°ºå¯¸ã€é¢œè‰²æ ¼å¼ç­‰ï¼‰
                 var cameraData = frameData.Get<UniversalCameraData>();
                 var descriptor = cameraData.cameraTargetDescriptor;
-                // ‹Ö—p MSAA ˜a[“xiblit ‘ü?—?Fj
+                // ç¦ç”¨ MSAA å’Œæ·±åº¦ï¼ˆblit åªå¤„ç†é¢œè‰²ï¼‰
                 descriptor.msaaSamples = 1;
                 descriptor.depthStencilFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.None;
 
                 Init(renderGraph, descriptor);
             }
 
-            // ª˜ pass “I–¼Ì?n??render graph pass
-            // ›ó?o—p˜°«”˜????õ”Ÿ”?s“I”˜B
-            // "BlitColorPass" ¥?Ÿ pass “I–¼š
-            // Ÿ?“I using ¥ C# “Iˆê??–@“œC¥ C# ? IDisposable ?Û“I–¾??Œ¹ŠÇ—•û®C—p˜°©??•ú?Œ¹B
-            // “–?İ using (...) {} ?–@??‘©?C›€‰ï©??—p builder.Dispose()CŠ®¬’ê?’™e??A??A´—“™”C?B
+            // æ ¹æ® pass çš„åç§°åˆå§‹åŒ–render graph pass
+            // å¹¶è¾“å‡ºç”¨äºå°†æ•°æ®è¾“é€åˆ°æ¸²æŸ“å‡½æ•°æ‰§è¡Œçš„æ•°æ®ã€‚
+            // using æ˜¯ C# çš„ä¸€ç§è¯­æ³•ç³–ï¼Œç”¨äºè‡ªåŠ¨é‡Šæ”¾èµ„æºï¼Œæ˜¯ C# å¯¹ IDisposable å¯¹è±¡çš„æ˜ç¡®èµ„æºç®¡ç†æ–¹å¼
+            // å½“ä½ åœ¨ using (...) {} è¯­æ³•å—ç»“æŸæ—¶ï¼Œå®ƒä¼šè‡ªåŠ¨è°ƒç”¨ .Dispose()ï¼Œå®Œæˆåº•å±‚æ³¨å†Œé€»è¾‘ã€éªŒè¯ã€æ¸…ç†ç­‰ä»»åŠ¡ã€‚
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("BlitColorPass", out var passData))
             {
-                // ?æ—¹“–‘O?‘œŠ÷“I?Œ¹ã‰º•¶C•ïŠ‡?‘œŠ÷“I Color RT ˜a Depth RT
+                // ä»ä¸Šä¸‹æ–‡ frameData ä¸­è·å–å½“å‰ç›¸æœºå¸§çš„èµ„æºæ•°æ®ï¼ˆactiveColorTexture å’Œ activeDepthTextureï¼‰
                 var resourceData = frameData.Get<UniversalResourceData>();
 
-                // —R˜° material •ïŠÜ—¹ãˆê?“IM‘§CŠˆÈù—v?sd’u
+                // ç”±äº material åŒ…å«äº†ä¸Šä¸€å¸§çš„ä¿¡æ¯ï¼Œæ‰€ä»¥éœ€è¦è¿›è¡Œé‡ç½®
                 passData.material = null;
-                // ?æ“–‘O‘ŠŠ÷?F?™tì? source
+                // ä»ç›¸æœºçš„é¢œè‰²ç¼“å†²åŒºè·å¾—çš„åŸå§‹ç”»é¢å›¾åƒ
                 passData.source = resourceData.activeColorTexture;
-                // ?’u destinationF“–‘O©’è?“I Blit ?—?™t‹æi’Êí¥?—p—ˆ?s@?—“I???—j
+                // è®¾ç½® destinationï¼šå½“å‰è‡ªå®šä¹‰çš„ Blit çº¹ç†ç¼“å†²åŒºï¼ˆé€šå¸¸æ˜¯ç”¨æ¥è¿›è¡Œåå¤„ç†çš„ä¸´æ—¶çº¹ç†ï¼‰
                 passData.destination = texture;
 
-                // ’™e source ?—ì??“üˆË?B?¥’m Render GraphF?˜¢ pass ‰ï?æ??—CˆöŸ•s”\İ‘´›€’n•û”íC‰üC?•Û?õ—¬’öˆê’v«B
+                // æ³¨å†Œ source çº¹ç†ä½œä¸ºè¾“å…¥ä¾èµ–ã€‚å‘ŠçŸ¥ Render Graphï¼šè¿™ä¸ª pass ä¼šè¯»å–è¯¥çº¹ç†ï¼Œå› æ­¤ä¸èƒ½åœ¨å…¶å®ƒåœ°æ–¹è¢«ä¿®æ”¹ï¼Œç¡®ä¿æ¸²æŸ“æµç¨‹ä¸€è‡´æ€§ã€‚
                 builder.UseTexture(passData.source);
-                // ?’u ?o?õ–Ú?F«?õ?‰Ê?o“ destinationBQ” 0 ¥w Render Target 0i–çA¥í??F?oŒûjB
+                // è®¾ç½® è¾“å‡ºæ¸²æŸ“ç›®æ ‡ï¼šå°†æ¸²æŸ“ç»“æœè¾“å‡ºåˆ° destinationã€‚å‚æ•° 0 æ˜¯æŒ‡ Render Target 0ï¼ˆä¹Ÿå°±æ˜¯å¸¸è§„é¢œè‰²è¾“å‡ºå£ï¼‰ã€‚
                 builder.SetRenderAttachment(passData.destination, 0);
 
-                // ?’u?õ”Ÿ” SetRenderFunc
-                // ?’u? pass “I^³?s??”Ÿ”FExecutePass(...)CExecutePass ’Êí•ïŠÜ Blitter.BlitTexture(rgContext.cmd, data.source, ..., data.material, ...)
-                // => ¥ C# ’†“ILambda •\?®?–@C–ç‹©gû?”Ÿ”hB
-                // SetRenderFuncF’™e «—ˆ?s?˜¢ Pass “I”Ÿ”iRenderGraph ‰ïİ?s?’i^³?—p›€jB
-                // ExecutePassF?w’è“I???s??C”ä”@?—p Blitter.BlitTexture() “™
+                // è®¾ç½®æ¸²æŸ“å‡½æ•° SetRenderFunc
+                // è®¾ç½®è¯¥ pass çš„çœŸæ­£æ‰§è¡Œæ¸²æŸ“å‡½æ•°ï¼šExecutePass(...)ï¼ŒExecutePass åŒ…å« Blitter.BlitTexture(rgContext.cmd, data.source, ..., data.material, ...)
+                // => æ˜¯ C# ä¸­çš„Lambda è¡¨è¾¾å¼è¯­æ³•ï¼Œä¹Ÿå«â€œç®­å¤´å‡½æ•°â€
+                // SetRenderFunc æ³¨å†Œ å°†æ¥æ‰§è¡Œè¿™ä¸ª Pass çš„å‡½æ•°ï¼ˆRenderGraph ä¼šåœ¨æ‰§è¡Œé˜¶æ®µçœŸæ­£è°ƒç”¨å®ƒï¼‰
                 builder.SetRenderFunc((PassData passData, RasterGraphContext rgContext) => ExecutePass(passData, rgContext));
             }
         }
 
-        // Å??‰Ê “ ?‘œŠ÷ color buffer
+        // æœ€ç»ˆç»“æœ åˆ° æ‘„åƒæœº color buffer
         public void RecordBlitBackToColor(RenderGraph renderGraph, ContextContainer frameData)
         {
-            // ”@‰Ê BlitData's texture ¥ invalid ?–¾›€–v—L”í‰n‰» ˆ½Ò ¥ error ?¶—¹
+            // å¦‚æœ BlitData's texture æ˜¯ invalid è¯´æ˜å®ƒæ²¡æœ‰è¢«åˆå§‹åŒ– æˆ–è€… æ˜¯ error å‘ç”Ÿäº†
             if (!texture.IsValid()) return;
 
-            // ª˜ pass “I–¼Ì?n??render graph pass
-            // ›ó?o—p˜°«”˜????õ”Ÿ”?s“I”˜B
             using (var builder = renderGraph.AddRasterRenderPass<PassData>($"BlitBackToColorPass", out var passData))
             {
-                // ?æ—¹“–‘O?‘œŠ÷“I?Œ¹ã‰º•¶C•ïŠ‡?‘œŠ÷“I Color RT ˜a Depth RT
                 var resourceData = frameData.Get<UniversalResourceData>();
 
                 passData.material = null;
                 passData.source = texture;
                 passData.destination = resourceData.activeColorTexture;
 
-                // ’™e source ?—ì??“üˆË?B
                 builder.UseTexture(passData.source);
-                // ?’u ?o?õ–Ú?F«?õ?‰Ê?o“ destinationBQ” 0 ¥w Render Target 0i–çA¥í??F?oŒûjB
                 builder.SetRenderAttachment(passData.destination, 0);
-
-                // ?’u?õ”Ÿ” SetRenderFunc
                 builder.SetRenderFunc((PassData passData, RasterGraphContext rgContext) => ExecutePass(passData, rgContext));
             }
         }
 
-        // BlitData ?’†“Iˆê˜¢•û–@C—p˜°Œü“–‘O?“I RenderGraph ’† “Y‰Áˆê˜¢‘S› ?—“I passCg—p’ñ‹Ÿ“I Material ?‰æ–Ê?s?—B
+        // BlitData ç±»ä¸­çš„ä¸€ä¸ªæ–¹æ³•ï¼Œç”¨äºå‘å½“å‰å¸§çš„ RenderGraph ä¸­ æ·»åŠ ä¸€ä¸ªå…¨å±å¤„ç†çš„ passï¼Œä½¿ç”¨æä¾›çš„ Material å¯¹ç”»é¢è¿›è¡Œå¤„ç†ã€‚
         public void RecordFullScreenPass(RenderGraph renderGraph, string passName, Material material)
         {
-            // ??¥”Û›ß—Lãˆê?“I?o?— (texture) ˆÈ‹yŞ?¥”Û—LÁ
-            // ”@‰Ê–v—LA’¼Ú returnC?–h~??”ñ–@“I GPU ?Œ¹?’v??B
+            // æ£€æŸ¥æ˜¯å¦å·²æœ‰ä¸Šä¸€æ­¥çš„è¾“å‡ºçº¹ç† (texture) ä»¥åŠæè´¨æ˜¯å¦æœ‰æ•ˆ
+            // å¦‚æœæ²¡æœ‰å°±ç›´æ¥ returnï¼Œé˜²æ­¢è®¿é—®éæ³•çš„ GPU èµ„æºå¯¼è‡´é”™è¯¯
             if (!texture.IsValid() || material == null)
             {
                 Debug.LogWarning("Invalid input texture handle, will skip fullscreen pass.");
                 return;
             }
 
-            // ?n’™e Raster PassB
-            // ?Œšˆê˜¢ Raster ?Œ^“I RenderPassB?˜¢ Pass ‰ïİ GPU ã?s?§‘€ìi’ÊíA¥‘S› l?Œ`jB
+            // å¼€å§‹æ³¨å†Œ Raster Pass
+            // åˆ›å»ºä¸€ä¸ª Raster ç±»å‹çš„ RenderPassã€‚è¿™ä¸ª Pass ä¼šåœ¨ GPU ä¸Šæ‰§è¡Œç»˜åˆ¶æ“ä½œï¼ˆé€šå¸¸å°±æ˜¯å…¨å±å››è¾¹å½¢ï¼‰ã€‚
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData))
             {
-                // Œğ?‘O@?™t‹æ(Ping-Pong Buffering)
+                // äº¤æ¢å‰åç¼“å†²åŒº(Ping-Pong Buffering)
                 m_IsFront = !m_IsFront;
 
-                // ?’u?“ü”˜Bg—p”V‘O??“I texture ì??“üBg—p’ñ‹Ÿ“I material —ˆ?s?—B
+                // ä½¿ç”¨ä¹‹å‰è®°å½•çš„ texture ä½œä¸ºè¾“å…¥ï¼Œå¹¶ä½¿ç”¨æä¾›çš„ material æ¥è¿›è¡Œå¤„ç†ã€‚
                 passData.material = material;
                 passData.source = texture;
 
-                // Œğ??˜¢ active textureB’Ê? m_IsFront ”»’f“–‘O?Ê“ü?ˆê˜¢ RT HandleB
+                // é€šè¿‡ m_IsFront åˆ¤æ–­å½“å‰è¯¥å†™å…¥å“ªä¸€ä¸ª RT Handleã€‚
                 if (m_IsFront)
                     passData.destination = m_TextureHandleFront;
                 else
                     passData.destination = m_TextureHandleBack;
 
-                // .UseTexture() ? RenderGraphF‰ä?ˆê pass ?æ—¹ source
+                // .UseTexture() å‘Šè¯‰ RenderGraphï¼šæˆ‘è¿™ä¸€ pass è¯»å–äº† sourceã€‚
                 builder.UseTexture(passData.source);
-                // .SetRenderAttachment() ?›€F‰ä“I color output ¥ destinationiBlit“I?o–Ú?j
+                // .SetRenderAttachment() å‘Šè¯‰å®ƒï¼šæˆ‘çš„ color output æ˜¯ destinationã€‚
                 builder.SetRenderAttachment(passData.destination, 0);
 
-                // XV“–‘O“I active ?o?—B
-                // ?Ÿ?sŠ®ˆê˜¢ passC‰ä?“s”c texture wŒüÅV“I outputB??‰ºˆêŸ?—p?C?æ“IA‰ï¥?ˆê?’†Å‹ßXV?“I“à—eB
+                // æ›´æ–°å½“å‰çš„ active è¾“å‡ºçº¹ç†ã€‚
+                // æ¯æ¬¡æ‰§è¡Œå®Œä¸€ä¸ª passï¼Œéƒ½æŠŠ texture æŒ‡å‘æœ€æ–°çš„ outputã€‚è¿™æ ·ä¸‹ä¸€æ¬¡è°ƒç”¨æ—¶ï¼Œè¯»å–çš„å°±ä¼šæ˜¯è¿™ä¸€å¸§ä¸­æœ€è¿‘æ›´æ–°è¿‡çš„å†…å®¹ã€‚
                 texture = passData.destination;
 
                 builder.SetRenderFunc((PassData passData, RasterGraphContext rgContext) => ExecutePass(passData, rgContext));
@@ -185,16 +176,16 @@ public class BlitRendererFeature : ScriptableRendererFeature
 
         static void ExecutePass(PassData data, RasterGraphContext rgContext)
         {
-            // Blitter.BlitTexture() ¥ Unity “à•”“I‚Á‘S› ?§••‘•
+            // Blitter.BlitTexture() æ˜¯ Unity å†…éƒ¨çš„é«˜æ•ˆå…¨å±å¤åˆ¶å°è£…
             if (data.material == null)
-                // ’¼Ú?§ source “–Ú??—CÙ”C‰½?—
+                // ç›´æ¥å¤åˆ¶ source åˆ°ç›®æ ‡çº¹ç†ï¼Œæ— ä»»ä½•å¤„ç†
                 Blitter.BlitTexture(rgContext.cmd, data.source, scaleBias, 0, false);
             else
-                // g—p material ? source ?s?—@?o“–Ú??—
+                // ä½¿ç”¨ material å¯¹ source è¿›è¡Œå¤„ç†åè¾“å‡ºåˆ°ç›®æ ‡çº¹ç†
                 Blitter.BlitTexture(rgContext.cmd, data.source, scaleBias, data.material, 0);
         }
 
-        // ˜a using ì—pˆæ?‘©??—p“I Dispose •s¥“¯ˆê˜¢
+        // å’Œ using ä½œç”¨åŸŸç»“æŸæ—¶è°ƒç”¨çš„ Dispose ä¸æ˜¯åŒä¸€ä¸ª
         public void Dispose()
         {
             m_TextureFront?.Release();
