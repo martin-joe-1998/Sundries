@@ -1,0 +1,15 @@
+pCube2 - Hair
+polySurface2 - Cloth
+polySurface4 - Cloth
+polySurface5 - Hair
+polySurface6 - Cloth
+polySurface7 - Hair
+polySurface9 - Hair
+polySurface10 - Cloth
+polySurface11 - Body
+polySurface23 - Face
+polySurface27 - Face
+polySurface30 - Face
+polySurface48 - Hair
+polySurface52 - ETC
+polySurface53 - Cloth
