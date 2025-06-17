@@ -49,7 +49,8 @@ namespace Queen.Gameplay
             // FadeIn 0 -> 1
             if (this.vfxTimer >= fadeInStartTime) {
                 float t = Mathf.InverseLerp(this.portalDuration + this.portalTwirlTime, fadeInStartTime, this.vfxTimer);
-                this.portalVFXCache.SetFloat("PortalFade", t);
+                float slowT = Mathf.SmoothStep(0f, 1f, t);
+                this.portalVFXCache.SetFloat("PortalFade", slowT);
             }
             else if (this.vfxTimer <= this.portalTwirlTime)
             {// FadeOut
