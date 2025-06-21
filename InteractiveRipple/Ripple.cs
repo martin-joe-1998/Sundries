@@ -1,39 +1,43 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Ripple : MonoBehaviour {
-    public Camera mainCamera;
-    public RenderTexture PrevRT;    // Previous frame's RT
-    public RenderTexture CurrentRT; // Current frame's RT
-    public RenderTexture TempRT;    // Temporary RT
-    public Shader DrawShader;       // draw shader
-    public Shader RippleShader;     // Ripple calc shader
+    [SerializeField]
+    private Camera mainCamera;
+    [SerializeField]
+    private Shader DrawShader;       // draw shader
+    [SerializeField]
+    private Shader RippleShader;     // Ripple calc shader
+    [SerializeField][Range(0, 1.0f)]
+    private float DrawRadius = 0.15f;
+    [SerializeField][Range(0, 1024)]
+    private int TextureSize = 512;
 
+    private RenderTexture PrevRT;    // Previous frame's RT
+    private RenderTexture CurrentRT; // Current frame's RT
+    private RenderTexture TempRT;    // Temporary RT
     private Material RippleMat;
     private Material DrawMat;
-    public int TextureSize = 512;
-    [Range(0, 1.0f)]
-    [SerializeField]public float DrawRadius = 0.15f;
+    private Vector3 lastPos;
 
     void Start()
     {
         // Get main camera object
-        mainCamera = Camera.main.GetComponent<Camera>();
+        this.mainCamera = Camera.main.GetComponent<Camera>();
 
-        CurrentRT = CreateRT();
-        PrevRT = CreateRT();
-        TempRT = CreateRT();
+        this.CurrentRT = CreateRT();
+        this.PrevRT = CreateRT();
+        this.TempRT = CreateRT();
 
-        DrawMat = new Material(DrawShader);
-        RippleMat = new Material(RippleShader);
+        this.DrawMat = new Material(this.DrawShader);
+        this.RippleMat = new Material(this.RippleShader);
 
-        GetComponent<Renderer>().material.mainTexture = CurrentRT;
+        this.GetComponent<Renderer>().material.mainTexture = this.CurrentRT;
     }
 
-    public RenderTexture CreateRT()
+    // Create a new RenderTexture with the specified size and format
+    private RenderTexture CreateRT()
     {
-        RenderTexture rt = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.RFloat);
+        RenderTexture rt = new RenderTexture(this.TextureSize, this.TextureSize, 0, RenderTextureFormat.RFloat);
         rt.Create();
 
         return rt;
@@ -42,44 +46,42 @@ public class Ripple : MonoBehaviour {
     private void DrawAt(float x, float y, float radius)
     {
         // original texture
-        DrawMat.SetTexture("_SourceTex", CurrentRT);
-        DrawMat.SetVector("_Pos", new Vector4(x, y, radius));
+        this.DrawMat.SetTexture("_SourceTex", CurrentRT);
+        this.DrawMat.SetVector("_Pos", new Vector4(x, y, radius));
         // pass to tempRT
-        Graphics.Blit(null, TempRT, DrawMat);
+        Graphics.Blit(null, this.TempRT, this.DrawMat);
 
-        RenderTexture rt = TempRT;
-        TempRT = CurrentRT;
-        CurrentRT= rt;
+        RenderTexture rt = this.TempRT;
+        this.TempRT = this.CurrentRT;
+        this.CurrentRT = rt;
     }
-
-    private Vector3 lastPos;
 
     void Update()
     {
         // raycast detect
         if (Input.GetMouseButton(0)) {
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            Ray ray = this.mainCamera.ScreenPointToRay(Input.mousePosition);
             // raycast hit info
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit)) {
-                if ((hit.point - lastPos).sqrMagnitude > 0.1f) {
+                if ((hit.point - this.lastPos).sqrMagnitude > 0.1f) {
                     // reset lastPos
-                    lastPos = hit.point;
+                    this.lastPos = hit.point;
                     // draw
-                    DrawAt(hit.textureCoord.x, hit.textureCoord.y, DrawRadius);
+                    DrawAt(hit.textureCoord.x, hit.textureCoord.y, this.DrawRadius);
                 }
             }
         }
 
         // calc ripple
-        RippleMat.SetTexture("_PrevRT", PrevRT);
-        RippleMat.SetTexture("_CurrentRT", CurrentRT);
-        Graphics.Blit(null, TempRT, RippleMat);
+        this.RippleMat.SetTexture("_PrevRT", this.PrevRT);
+        this.RippleMat.SetTexture("_CurrentRT", this.CurrentRT);
+        Graphics.Blit(null, this.TempRT, this.RippleMat);
 
-        // pass to curr
-        Graphics.Blit(TempRT, PrevRT);
-        RenderTexture rt = PrevRT;
-        PrevRT = CurrentRT;
-        CurrentRT = rt;
+        // pass to curr, ping pong buffer
+        Graphics.Blit(this.TempRT, this.PrevRT);
+        RenderTexture rt = this.PrevRT;
+        this.PrevRT = this.CurrentRT;
+        this.CurrentRT = rt;
     }
 }
