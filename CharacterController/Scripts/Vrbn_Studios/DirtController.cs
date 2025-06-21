@@ -1,10 +1,10 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class DirtController : MonoBehaviour
 {
- public Material[] dirtMaterialArray;
+    public Material[] dirtMaterialArray;
 
     [Range(0.0f, 1.0f)]
     public float dirtIntensity = 0.25f;
