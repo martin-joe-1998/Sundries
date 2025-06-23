@@ -19,12 +19,12 @@ Window::Window(int width, int height)
 	wc.style = CS_OWNDC; // Use own device context
 	wc.lpfnWndProc = WinProc; // Callback function
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wc.lpszClassName = "DX11Tutorial";
+	wc.lpszClassName = "OpticalDX11";
 	RegisterClass(&wc);
 
 	// Create a window class structure
 	m_handle = CreateWindow(
-		"DX11Tutorial", "DX11 Tutorials", 
+		"OpticalDX11", "Optical Ⅰ", 
 		WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
 		100, 100, width, height,
 		nullptr, nullptr, nullptr, nullptr );
