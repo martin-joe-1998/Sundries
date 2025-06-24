@@ -44,25 +44,40 @@ void Renderer::CreateDevice(Window& window)
 void Renderer::CreateRenderTarget()
 {
 	ID3D11Texture2D* backBuffer = nullptr;
-	m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
-	m_device->CreateRenderTargetView(backBuffer, nullptr, &m_renderTargetView);
+
+	HRESULT hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
+	if (FAILED(hr) || backBuffer == nullptr)
+	{
+		MessageBox(nullptr, "Failed to get back buffer from swap chain.", "Error", MB_OK | MB_ICONERROR);
+		exit(0);
+	}
+
+	hr = m_device->CreateRenderTargetView(backBuffer, nullptr, &m_renderTargetView);
+	if (FAILED(hr))
+	{
+		MessageBox(nullptr, "Failed to create render target view.", "Error", MB_OK | MB_ICONERROR);
+		backBuffer->Release();
+		exit(0);
+	}
+
+	backBuffer->GetDesc(&m_backBufferDesc); // get the back buffer description
 	backBuffer->Release(); // release the back buffer texture
 }
 
 void Renderer::BeginFrame()
 {
-	// Set the render target to the back buffer
-	// m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, nullptr);
+	// Bind render target
+	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, nullptr); // no depth stencil view
 
 	// Set the viewport
-	// D3D11_VIEWPORT viewport = {};
-	// viewport.TopLeftX = 0;
-	// viewport.TopLeftY = 0;
-	// viewport.Width = 800;
-	// viewport.Height = 600;
-	// viewport.MinDepth = 0.0f;
-	// viewport.MaxDepth = 1.0f;
-	// m_deviceContext->RSSetViewports(1, &viewport);
+	CD3D11_VIEWPORT viewport = {}; // CD3D11_VIEWPORT(0.f, 0.f, 800.f, 600.f);
+	viewport.TopLeftX = 0.f;
+	viewport.TopLeftY = 0.f;
+	viewport.Width = (float) m_backBufferDesc.Width;
+	viewport.Height = (float) m_backBufferDesc.Height;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	m_deviceContext->RSSetViewports(1, &viewport);
 
 	// Set the background color
 	// float red = (float)(rand() % 256) / 255.0f; // random red value

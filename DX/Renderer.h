@@ -25,4 +25,5 @@ private:
 	
 	// Render target view
 	ID3D11RenderTargetView* m_renderTargetView = nullptr;
+	D3D11_TEXTURE2D_DESC m_backBufferDesc;
 };
