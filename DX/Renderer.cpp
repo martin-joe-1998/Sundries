@@ -17,6 +17,10 @@ void Renderer::CreateDevice(Window& window)
 	swapChainDesc.SampleDesc.Count = 1; // no multisampling
 	swapChainDesc.Windowed = TRUE; // windowed mode
 
+	// create the base version of device and swap chain
+	ID3D11Device* m_device = nullptr;
+	ID3D11DeviceContext* m_deviceContext = nullptr;
+
 	// Create the swap chain device and context
 	auto result = D3D11CreateDeviceAndSwapChain(
 		nullptr, // default adapter
@@ -39,6 +43,13 @@ void Renderer::CreateDevice(Window& window)
 		MessageBox(nullptr, "Problem Creating DX11", "Error", MB_OK | MB_ICONERROR);
 		exit(0);
 	}
+
+	m_device->QueryInterface(__uuidof(ID3D11Device1), (void**)&m_device1);
+	m_deviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1), (void**)&m_deviceContext1);
+	
+	// release the original device
+	m_device->Release(); 
+	m_deviceContext->Release();
 }
 
 void Renderer::CreateRenderTarget()
@@ -52,7 +63,7 @@ void Renderer::CreateRenderTarget()
 		exit(0);
 	}
 
-	hr = m_device->CreateRenderTargetView(backBuffer, nullptr, &m_renderTargetView);
+	hr = m_device1->CreateRenderTargetView(backBuffer, nullptr, &m_renderTargetView);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr, "Failed to create render target view.", "Error", MB_OK | MB_ICONERROR);
@@ -67,7 +78,7 @@ void Renderer::CreateRenderTarget()
 void Renderer::BeginFrame()
 {
 	// Bind render target
-	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, nullptr); // no depth stencil view
+	m_deviceContext1->OMSetRenderTargets(1, &m_renderTargetView, nullptr); // no depth stencil view
 
 	// Set the viewport
 	CD3D11_VIEWPORT viewport = {}; // CD3D11_VIEWPORT(0.f, 0.f, 800.f, 600.f);
@@ -77,12 +88,12 @@ void Renderer::BeginFrame()
 	viewport.Height = (float) m_backBufferDesc.Height;
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
-	m_deviceContext->RSSetViewports(1, &viewport);
+	m_deviceContext1->RSSetViewports(1, &viewport);
 
 	// Set the background color
 	// float red = (float)(rand() % 256) / 255.0f; // random red value
 	float clearColor[4] = { 0.3f, 0.4f, 0.5f, 1.0f };
-	m_deviceContext->ClearRenderTargetView(m_renderTargetView, clearColor);
+	m_deviceContext1->ClearRenderTargetView(m_renderTargetView, clearColor);
 }
 
 void Renderer::EndFrame()

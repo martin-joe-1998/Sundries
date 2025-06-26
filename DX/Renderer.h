@@ -1,9 +1,12 @@
 ﻿#pragma once
 #include "Window.h"
-#include <d3d11.h>
+#include <d3d11_1.h>
+#include <directxmath.h>
+#include <d3dcompiler.h>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
 class Renderer 
 {
@@ -11,8 +14,8 @@ public:
 	Renderer(Window& window);
 	void BeginFrame();
 	void EndFrame();
-	ID3D11Device* GetDevice() const { return m_device; }
-	ID3D11DeviceContext* GetDeviceContext() const { return m_deviceContext; }
+	ID3D11Device1* GetDevice() const { return m_device1; }
+	ID3D11DeviceContext1* GetDeviceContext() const { return m_deviceContext1; }
 
 private:
 	void CreateDevice(Window& window);
@@ -20,8 +23,11 @@ private:
 
 	// Device stuff
 	IDXGISwapChain* m_swapChain = nullptr;
-	ID3D11Device* m_device = nullptr;
-	ID3D11DeviceContext* m_deviceContext = nullptr;
+	//ID3D11Device* m_device = nullptr;
+	//ID3D11DeviceContext* m_deviceContext = nullptr;
+
+	ID3D11Device1* m_device1 = nullptr;
+	ID3D11DeviceContext1* m_deviceContext1 = nullptr;
 	
 	// Render target view
 	ID3D11RenderTargetView* m_renderTargetView = nullptr;
