@@ -6,10 +6,6 @@ Renderer::Renderer(Game* game)
 {
 }
 
-Renderer::~Renderer()
-{
-}
-
 bool Renderer::Initialize(int screenWidth, int screenHeight)
 {	
 	// Create the window

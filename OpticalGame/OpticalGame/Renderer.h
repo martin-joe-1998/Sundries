@@ -11,7 +11,6 @@ class Renderer
 {
 public:
 	Renderer(class Game* mGame);
-	~Renderer();
 	bool Initialize(int screenWidth, int screenHeight);
 	void BeginFrame();
 	void EndFrame();

@@ -19,7 +19,6 @@ bool Game::Initialize()
 	}
 
 	SetScreenSize(1600, 900);
-
 	if (!mRenderer->Initialize(mWindowWidth, mWindowHeight))
 	{
 		std::cerr << "Failed to initialize renderer." << std::endl;
@@ -29,6 +28,13 @@ bool Game::Initialize()
 	}
 
 	mTriangle = new Triangle(*mRenderer);
+	if (!mTriangle)
+	{
+		std::cerr << "Failed to create triangle." << std::endl;
+		delete mRenderer;
+		mRenderer = nullptr;
+		return false;
+	}
 
 	return true;
 }
@@ -67,17 +73,16 @@ void Game::Shutdown()
 	delete mRenderer;
 	delete mTriangle;
 
-	return;
+	mRenderer = nullptr;
+	mTriangle = nullptr;
 }
 
 void Game::ProcessInput()
 {
-	return;
 }
 
 void Game::UpdateGame()
 {
-	return;
 }
 
 void Game::GenerateOutput()
