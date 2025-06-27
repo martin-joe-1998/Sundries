@@ -1,4 +1,4 @@
-#include "Renderer.h"
+﻿#include "Renderer.h"
 #include <iostream>
 
 Renderer::Renderer(Game* game)
@@ -11,12 +11,9 @@ Renderer::~Renderer()
 }
 
 bool Renderer::Initialize(int screenWidth, int screenHeight)
-{
-	mWindowWidth = screenWidth;
-	mWindowHeight = screenHeight;
-	
+{	
 	// Create the window
-	mWindow = new Window(mWindowWidth, mWindowHeight);
+	mWindow = new Window(screenWidth, screenHeight);
 	
 	if (!mWindow)
 	{

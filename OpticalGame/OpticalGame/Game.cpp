@@ -1,4 +1,4 @@
-#include "Game.h"
+﻿#include "Game.h"
 #include "Renderer.h"
 #include "Triangle.h"
 #include <iostream>
@@ -11,9 +11,16 @@ Game::Game()
 
 bool Game::Initialize()
 {
-	mRenderer = new Renderer(this);
-	
-	if (!mRenderer->Initialize(800, 600))
+	mRenderer = new Renderer(this);	
+	if (!mRenderer)
+	{
+		std::cerr << "Failed to create renderer." << std::endl;
+		return false;
+	}
+
+	SetScreenSize(1600, 900);
+
+	if (!mRenderer->Initialize(mWindowWidth, mWindowHeight))
 	{
 		std::cerr << "Failed to initialize renderer." << std::endl;
 		delete mRenderer;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Window.h"  
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
@@ -33,9 +33,6 @@ private:
 	// Render target view
 	ID3D11RenderTargetView* m_renderTargetView = nullptr;
 	D3D11_TEXTURE2D_DESC m_backBufferDesc{};
-
-	int mWindowWidth{};
-	int mWindowHeight{};
 
 	class Game* mGame{};
 	class Window* mWindow{};

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -9,7 +9,6 @@ class Game
 {
 public:
 	Game();
-	//~Game();
 	bool Initialize();
 	void RunLoop();
 	void Shutdown();
@@ -29,9 +28,12 @@ private:
 	void ProcessInput();
 	void UpdateGame();
 	void GenerateOutput();
+	void SetScreenSize(int width, int height) { mWindowWidth = width; mWindowHeight = height; }
 
 	GameState mGameState;
 
+	int mWindowWidth;
+	int mWindowHeight;
 	class Triangle* mTriangle;
 	class Renderer* mRenderer;
 };
