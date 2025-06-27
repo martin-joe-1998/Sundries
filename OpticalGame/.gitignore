@@ -1,0 +1,9 @@
+# Ignore everything in this directory and its subfolders
+**
+
+# But allow specific file types
+!*.cpp
+!*.h
+!*.hlsl
+!*.cso
+!*.fxh
