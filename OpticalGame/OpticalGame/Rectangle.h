@@ -8,5 +8,7 @@ public:
 	~Rectangle();
     void Draw(Renderer& renderer);
 private:
+    float mWidth;
+    float mHeight;
 };
 
