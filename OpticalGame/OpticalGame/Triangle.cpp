@@ -1,13 +1,14 @@
-#include "Triangle.h"
+﻿#include "Triangle.h"
 #include "Math.h"
 #include <fstream>
 #include <vector>
+#include "Rectangle.h"
 
 struct Vertex
 {
-	float x, y, z; // Position
-	float u, v;    // UV
-	float r, g, b; // Color
+	Vector3 position; // Position
+	Vector2 uv;    // UV
+	Vector3 color; // Color
 };
 
 Triangle::Triangle(Renderer& renderer)
@@ -47,9 +48,9 @@ void Triangle::CreateMesh(Renderer& renderer)
 {
 	// Define vertices for a triangle
 	Vertex vertices[] = {
-		{ -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }, // Top vertex (Red)
-		{  0.0f,  1.0f, 0.0f, 0.5f, 1.0f, 0.0f, 1.0f, 0.0f }, // Bottom right vertex (Green)
-		{  1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f }  // Bottom left vertex (Blue)
+		{ Vector3(-1.0f, -1.0f, 0.0f), Vector2(0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f) }, // Top vertex (Red)
+		{ Vector3( 0.0f,  1.0f, 0.0f), Vector2(0.5f, 1.0f), Vector3(0.0f, 1.0f, 0.0f) }, // Bottom right vertex (Green)
+		{ Vector3( 1.0f, -1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f) }  // Bottom left vertex (Blue)
 	};
 
 	// Create vertex buffer
