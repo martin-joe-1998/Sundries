@@ -1,9 +1,9 @@
-# Ignore everything in this directory and its subfolders
+# Ignore everything
 **
 
-# But allow specific file types
-!*.cpp
-!*.h
-!*.hlsl
-!*.cso
-!*.fxh
+# But allow specific file types in all subdirectories
+!**/*.cpp
+!**/*.h
+!**/*.hlsl
+!**/*.cso
+!**/*.fxh
