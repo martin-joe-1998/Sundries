@@ -1,15 +1,8 @@
-﻿#include "Triangle.h"
+#include "Triangle.h"
 #include "Math.h"
+#include "Mesh.h"
 #include <fstream>
 #include <vector>
-#include "Rectangle.h"
-
-struct Vertex
-{
-	Vector3 position; // Position
-	Vector2 uv;    // UV
-	Vector3 color; // Color
-};
 
 Triangle::Triangle(Renderer& renderer)
 {
@@ -35,7 +28,7 @@ void Triangle::Draw(Renderer& renderer)
 	deviceContext->PSSetShader(m_pixelShader, nullptr, 0);
 
 	// Bind the vertex buffer
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(Mesh::Vertex);
 	UINT offset = 0;
 	deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 	//deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -44,13 +37,17 @@ void Triangle::Draw(Renderer& renderer)
 	deviceContext->Draw(3, 0); // 3 vertices, starting at index 0
 }
 
+void Triangle::Update(float deltaTime)
+{
+}
+
 void Triangle::CreateMesh(Renderer& renderer)
 {
 	// Define vertices for a triangle
-	Vertex vertices[] = {
-		{ Vector3(-1.0f, -1.0f, 0.0f), Vector2(0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f) }, // Top vertex (Red)
-		{ Vector3( 0.0f,  1.0f, 0.0f), Vector2(0.5f, 1.0f), Vector3(0.0f, 1.0f, 0.0f) }, // Bottom right vertex (Green)
-		{ Vector3( 1.0f, -1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f) }  // Bottom left vertex (Blue)
+	Mesh::Vertex vertices[] = {
+		{ Vector3(-1.0f, -1.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Top vertex (Red)
+		{ Vector3( 0.0f,  1.0f, 0.0f), Vector2(0.5f, 1.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f) }, // Bottom right vertex (Green)
+		{ Vector3( 1.0f, -1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f) }  // Bottom left vertex (Blue)
 	};
 
 	// Create vertex buffer
@@ -104,7 +101,7 @@ void Triangle::CreateShaders(Renderer& renderer)
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	renderer.GetDevice()->CreateInputLayout(

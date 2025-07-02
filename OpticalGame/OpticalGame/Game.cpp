@@ -1,42 +1,37 @@
-﻿#include "Game.h"
-#include "Renderer.h"
+#include "Game.h"
 #include "Triangle.h"
+#include "Rectangle.h"
 #include <iostream>
 
 Game::Game()
 :mRenderer(nullptr)
-,mGameState(EMainMenu)
+,mGameState(EGameplay)
 {
+	// initializes the COM library on the current thread and sets the concurrency model to Single-Threaded Apartment (STA)
+	HRESULT hr = CoInitialize(nullptr);
+	if (FAILED(hr))
+	{
+		MessageBox(nullptr, L"Failed to Initialize WICFactory.", L"Error", MB_OK | MB_ICONERROR);
+		exit(0);
+	}
 }
 
-bool Game::Initialize()
-{
-	mRenderer = new Renderer(this);	
-	if (!mRenderer)
-	{
-		std::cerr << "Failed to create renderer." << std::endl;
-		return false;
-	}
+bool Game::Initialize()  
+{  
+    mRenderer = new Renderer(this);  
 
-	SetScreenSize(1600, 900);
-	if (!mRenderer->Initialize(mWindowWidth, mWindowHeight))
-	{
-		std::cerr << "Failed to initialize renderer." << std::endl;
-		delete mRenderer;
-		mRenderer = nullptr;
-		return false;
-	}
+    if (!mRenderer->Initialize(1600, 900))  
+    {  
+        std::cerr << "Failed to initialize renderer." << std::endl;  
+        delete mRenderer;  
+        mRenderer = nullptr;  
+        return false;  
+    }  
 
-	mTriangle = new Triangle(*mRenderer);
-	if (!mTriangle)
-	{
-		std::cerr << "Failed to create triangle." << std::endl;
-		delete mRenderer;
-		mRenderer = nullptr;
-		return false;
-	}
+    mTriangle = new class Triangle(*mRenderer);  
+    mRectangle = new class Rectangle(*mRenderer);
 
-	return true;
+    return true;  
 }
 
 void Game::RunLoop()
@@ -70,19 +65,41 @@ void Game::RunLoop()
 
 void Game::Shutdown()
 {
+	// Uninitialize the COM library
+	CoUninitialize();
+
 	delete mRenderer;
 	delete mTriangle;
+	delete mRectangle;
 
-	mRenderer = nullptr;
-	mTriangle = nullptr;
+	return;
 }
 
 void Game::ProcessInput()
 {
+	// Detect if the user pressed the escape key (for closing window)
+	if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
+	{
+		mGameState = EQuit;
+
+		if (mRenderer && mRenderer->GetGame() && mRenderer->GetGame()->mRenderer->GetWindow())
+		{
+			HWND hwnd = mRenderer->GetWindow()->GetHandle();
+			if (hwnd)
+				PostMessage(hwnd, WM_CLOSE, 0, 0);
+		}
+		return;
+	}
 }
 
 void Game::UpdateGame()
 {
+	if (mGameState == EGameplay)
+	{
+
+	}
+
+	return;
 }
 
 void Game::GenerateOutput()
@@ -91,6 +108,7 @@ void Game::GenerateOutput()
 	mRenderer->BeginFrame();
 	// Rendering you know aocnuewrgnoivne....orz
 	// renderer.Draw();  
-	mTriangle->Draw(*mRenderer);
+	//mTriangle->Draw(*mRenderer);
+	mRectangle->Draw(*mRenderer);
 	mRenderer->EndFrame();
 }

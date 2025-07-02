@@ -120,8 +120,14 @@ namespace Math
 class Vector2
 {
 public:
-	float x;
-	float y;
+	union
+	{
+		struct { float x, y; };
+		struct { float u, v; }; // For texture coordinates
+		float vec[2];
+	};
+	// float x;
+	// float y;
 
 	Vector2()
 		:x(0.0f)
@@ -257,9 +263,12 @@ public:
 class Vector3
 {
 public:
-	float x;
-	float y;
-	float z;
+	union
+	{
+		struct { float x, y, z; };
+		struct { float r, g, b; }; // For color
+		float vec[3];
+	};
 
 	Vector3()
 		:x(0.0f)
@@ -325,6 +334,14 @@ public:
 		x *= scalar;
 		y *= scalar;
 		z *= scalar;
+		return *this;
+	}
+
+	Vector3& operator*=(Vector3 vec)
+	{
+		x *= vec.x;
+		y *= vec.y;
+		z *= vec.z;
 		return *this;
 	}
 
@@ -419,6 +436,137 @@ public:
 	static const Vector3 NegUnitZ;
 	static const Vector3 Infinity;
 	static const Vector3 NegInfinity;
+};
+
+class Vector4
+{
+public:
+	union {
+		struct { float x, y, z, w; };
+		struct { float r, g, b, a; };
+		float vec[4];
+	};
+
+	// Construtor
+	explicit Vector4(float inX, float inY, float inZ, float inW)
+		: x(inX), y(inY), z(inZ), w(inW)
+	{
+	}
+
+	template<class Vector4>
+	void CopyTo(Vector4& dst) const
+	{
+		dst.x = x;
+		dst.y = y;
+		dst.z = z;
+		dst.w = w;
+	}
+
+	void Set(float _x, float _y, float _z, float _w)
+	{
+		this->x = _x;
+		this->y = _y;
+		this->z = _z;
+		this->w = _w;
+	}
+	
+	// Operator overloads
+	friend Vector4 operator+(const Vector4& a, const Vector4& b)
+	{
+		return Vector4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+	}
+
+	// Vector subtraction (a - b)
+	friend Vector4 operator-(const Vector4& a, const Vector4& b)
+	{
+		return Vector4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+	}
+
+	// Component-wise multiplication
+	friend Vector4 operator*(const Vector4& left, const Vector4& right)
+	{
+		return Vector4(left.x * right.x, left.y * right.y, left.z * right.z, left.w * right.w);
+	}
+
+	// Scalar multiplication
+	friend Vector4 operator*(const Vector4& vec, float scalar)
+	{
+		return Vector4(vec.x * scalar, vec.y * scalar, vec.z * scalar, vec.w * scalar);
+	}
+
+	// Scalar multiplication
+	friend Vector4 operator*(float scalar, const Vector4& vec)
+	{
+		return Vector4(vec.x * scalar, vec.y * scalar, vec.z * scalar, vec.w * scalar);
+	}
+
+	// Scalar *=
+	Vector4& operator*=(float scalar)
+	{
+		x *= scalar;
+		y *= scalar;
+		z *= scalar;
+		w *= scalar;
+		return *this;
+	}
+
+	// Vector +=
+	Vector4& operator+=(const Vector4& right)
+	{
+		x += right.x;
+		y += right.y;
+		z += right.z;
+		w += right.w;
+		return *this;
+	}
+
+	// Vector -=
+	Vector4& operator-=(const Vector4& right)
+	{
+		x -= right.x;
+		y -= right.y;
+		z -= right.z;
+		w -= right.w;
+		return *this;
+	}
+
+	// Tool functions
+	float Lengthsq() const
+	{
+		return (x * x + y * y + z * z + w * w);
+	}
+
+	float Length() const
+	{
+		return Math::Sqrt(Lengthsq());
+	}
+
+	void Normalize()
+	{
+		float length = Lengthsq();
+		if (length > 0.0f)
+		{
+			x /= length;
+			y /= length;
+			z /= length;
+			w /= length;
+		}
+	}
+
+	static float Dot(const Vector4& a, const Vector4& b)
+	{
+		return (a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w);
+	}
+
+	static const Vector4 Zero;
+	static const Vector4 UnitX;
+	static const Vector4 UnitY;
+	static const Vector4 UnitZ;
+	static const Vector4 NegUnitX;
+	static const Vector4 NegUnitY;
+	static const Vector4 NegUnitZ;
+	static const Vector4 Infinity;
+	static const Vector4 NegInfinity;
 };
 
 // 3x3 Matrix
@@ -550,6 +698,15 @@ public:
 			{ trans.x, trans.y, 1.0f },
 		};
 		return Matrix3(temp);
+	}
+
+	static Matrix3 Transpose(const Matrix3& m)
+	{
+		Matrix3 result;
+		for (int i = 0; i < 3; ++i)
+			for (int j = 0; j < 3; ++j)
+				result.mat[i][j] = m.mat[j][i];
+		return result;
 	}
 
 	static const Matrix3 Identity;
@@ -799,6 +956,16 @@ public:
 		return Matrix4(temp);
 	}
 
+	static Matrix4 CreateRotationFromDegree(float xDegree, float yDegree, float zDegree)
+	{
+		return CreateRotationZ(Math::ToRadians(zDegree)) * CreateRotationY(Math::ToRadians(yDegree)) * CreateRotationX(Math::ToRadians(xDegree));
+	}
+
+	static Matrix4 CreateRotationFromDegree(const Vector3& rotations)
+	{
+		return CreateRotationZ(Math::ToRadians(rotations.z)) * CreateRotationY(Math::ToRadians(rotations.y)) * CreateRotationX(Math::ToRadians(rotations.x));
+	}
+
 	// Create a rotation matrix from a quaternion
 	static Matrix4 CreateFromQuaternion(const class Quaternion& q);
 
@@ -814,6 +981,7 @@ public:
 		return Matrix4(temp);
 	}
 
+	// eye: CameraPos, target: LookAtPos, up: UpVector( usually (0,1,0) )
 	static Matrix4 CreateLookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
 	{
 		Vector3 zaxis = Vector3::Normalize(target - eye);
@@ -834,6 +1002,7 @@ public:
 		return Matrix4(temp);
 	}
 	
+	// (windowWidth, windowHeight, 0.1f, 100f)
 	static Matrix4 CreateOrtho(float width, float height, float near_, float far_)
 	{
 		float temp[4][4] =
@@ -873,6 +1042,15 @@ public:
 		return Matrix4(temp);
 	}
 
+	static Matrix4 Transpose(const Matrix4& m)
+	{
+		Matrix4 result;
+		for (int i = 0; i < 4; ++i)
+			for (int j = 0; j < 4; ++j)
+				result.mat[i][j] = m.mat[j][i];
+		return result;
+	}
+
 	static const Matrix4 Identity;
 };
 
@@ -880,18 +1058,21 @@ public:
 class Quaternion
 {
 public:
-	float x;
-	float y;
-	float z;
-	float w;
+	union
+	{
+		// q = w + xi + yj + zk
+		struct { float x, y, z, w; };
+	};
+	// float x;
+	// float y;
+	// float z;
+	// float w;
 
 	Quaternion()
 	{
 		*this = Quaternion::Identity;
 	}
 
-	// This directly sets the quaternion components --
-	// don't use for axis/angle
 	explicit Quaternion(float inX, float inY, float inZ, float inW)
 	{
 		Set(inX, inY, inZ, inW);
@@ -1045,6 +1226,12 @@ public:
 			return Quaternion(0.0f, 0.0f, 0.0f, 1.0f); // No rotation needed
 		}
 		return Quaternion(cross, angle);
+	}
+
+	// Usually a rotation in game will be conducted by sequence of Z-Y-X (Yaw-Pitch-Roll)
+	friend Quaternion operator*(const Quaternion& left, const Quaternion& right)
+	{
+		return Quaternion::Concatenate(left, right);
 	}
 
 	static const Quaternion Identity;

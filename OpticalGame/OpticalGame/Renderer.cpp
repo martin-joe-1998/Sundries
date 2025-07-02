@@ -1,15 +1,30 @@
-﻿#include "Renderer.h"
+#include "Renderer.h"
 #include <iostream>
 
 Renderer::Renderer(Game* game)
-	:mGame(game)
+	: mGame(game)
+	, m_swapChain(nullptr)
+	, m_device1(nullptr)
+	, m_deviceContext1(nullptr)
+	, m_renderTargetView(nullptr)
 {
 }
 
+Renderer::~Renderer()
+{
+	if (m_swapChain) m_swapChain->Release(); 
+	if (m_device1) m_device1->Release();
+	if (m_deviceContext1) m_deviceContext1->Release();
+	if (m_renderTargetView) m_renderTargetView->Release();
+}
+
 bool Renderer::Initialize(int screenWidth, int screenHeight)
-{	
+{
+	mWindowWidth = screenWidth;
+	mWindowHeight = screenHeight;
+	
 	// Create the window
-	mWindow = new Window(screenWidth, screenHeight);
+	mWindow = new Window(mWindowWidth, mWindowHeight);
 	
 	if (!mWindow)
 	{
@@ -33,6 +48,7 @@ void Renderer::CreateDevice(Window& window)
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;  // usage
 	swapChainDesc.OutputWindow = window.GetHandle();			  // window handle
 	swapChainDesc.SampleDesc.Count = 1;							  // no multisampling
+	swapChainDesc.SampleDesc.Quality = 0;
 	swapChainDesc.Windowed = TRUE;							      // windowed mode
 
 	// create the base version of device and swap chain
@@ -51,9 +67,19 @@ void Renderer::CreateDevice(Window& window)
 		&swapChainDesc,				// swap chain description
 		&m_swapChain,				// swap chain pointer
 		&m_device,					// device pointer
-		nullptr,					// feature level (not used)
+		&mSelectedFeatureLevel,		// feature level (not used)
 		&m_deviceContext			// context pointer
 	);
+
+	// Currently, Feaature Level 11.0(shader model 5.1) is selected
+	switch (mSelectedFeatureLevel)
+	{
+	case D3D_FEATURE_LEVEL_11_1: printf("Using D3D_FEATURE_LEVEL_11_1\n"); break;
+	case D3D_FEATURE_LEVEL_11_0: printf("Using D3D_FEATURE_LEVEL_11_0\n"); break;
+	case D3D_FEATURE_LEVEL_10_1: printf("Using D3D_FEATURE_LEVEL_10_1\n"); break;
+	case D3D_FEATURE_LEVEL_10_0: printf("Using D3D_FEATURE_LEVEL_10_0\n"); break;
+	default: printf("Using a feature level under 10_0\n"); break;
+	}
 
 	// Check for errors
 	if (result != S_OK)
@@ -100,7 +126,7 @@ void Renderer::BeginFrame()
 	m_deviceContext1->OMSetRenderTargets(1, &m_renderTargetView, nullptr); // no depth stencil view
 
 	// Set the viewport
-	CD3D11_VIEWPORT viewport = {}; // CD3D11_VIEWPORT(0.f, 0.f, 800.f, 600.f);
+	CD3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = 0.f;
 	viewport.TopLeftY = 0.f;
 	viewport.Width = (float)m_backBufferDesc.Width;

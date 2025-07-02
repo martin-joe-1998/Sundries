@@ -1,7 +1,5 @@
 #include "Math.h"
 
-#include "Math.h"
-
 const Vector2 Vector2::Zero(0.0f, 0.0f);
 const Vector2 Vector2::UnitX(1.0f, 0.0f);
 const Vector2 Vector2::UnitY(0.0f, 1.0f);
@@ -17,6 +15,17 @@ const Vector3 Vector3::NegUnitY(0.0f, -1.0f, 0.0f);
 const Vector3 Vector3::NegUnitZ(0.0f, 0.0f, -1.0f);
 const Vector3 Vector3::Infinity(Math::Infinity, Math::Infinity, Math::Infinity);
 const Vector3 Vector3::NegInfinity(Math::NegInfinity, Math::NegInfinity, Math::NegInfinity);
+
+// Bascially for color data
+const Vector4 Vector4::Zero(0.0f, 0.0f, 0.0f, 0.0f);
+const Vector4 Vector4::UnitX(1.0f, 0.0f, 0.0f, 0.0f);
+const Vector4 Vector4::UnitY(0.0f, 1.0f, 0.0f, 0.0f);
+const Vector4 Vector4::UnitZ(0.0f, 0.0f, 1.0f, 0.0f);
+const Vector4 Vector4::NegUnitX(-1.0f, 0.0f, 0.0f, 0.0f);
+const Vector4 Vector4::NegUnitY(0.0f, -1.0f, 0.0f, 0.0f);
+const Vector4 Vector4::NegUnitZ(0.0f, 0.0f, -1.0f, 0.0f);
+const Vector4 Vector4::Infinity(Math::Infinity, Math::Infinity, Math::Infinity, Math::Infinity);
+const Vector4 Vector4::NegInfinity(Math::NegInfinity, Math::NegInfinity, Math::NegInfinity, Math::NegInfinity);
 
 static float m3Ident[3][3] =
 {
@@ -43,7 +52,7 @@ Vector2 Vector2::Transform(const Vector2& vec, const Matrix3& mat, float w /*= 1
 	Vector2 retVal;
 	retVal.x = vec.x * mat.mat[0][0] + vec.y * mat.mat[1][0] + w * mat.mat[2][0];
 	retVal.y = vec.x * mat.mat[0][1] + vec.y * mat.mat[1][1] + w * mat.mat[2][1];
-	//ignore w since we aren't returning a new value for it...
+	
 	return retVal;
 }
 
@@ -56,7 +65,7 @@ Vector3 Vector3::Transform(const Vector3& vec, const Matrix4& mat, float w /*= 1
 		vec.z * mat.mat[2][1] + w * mat.mat[3][1];
 	retVal.z = vec.x * mat.mat[0][2] + vec.y * mat.mat[1][2] +
 		vec.z * mat.mat[2][2] + w * mat.mat[3][2];
-	//ignore w since we aren't returning a new value for it...
+	
 	return retVal;
 }
 
@@ -92,8 +101,6 @@ Vector3 Vector3::Transform(const Vector3& v, const Quaternion& q)
 
 void Matrix4::Invert()
 {
-	// Thanks slow math
-	// This is a really janky way to unroll everything...
 	float tmp[12];
 	float src[16];
 	float dst[16];
