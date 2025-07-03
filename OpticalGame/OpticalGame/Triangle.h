@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Shape.h"
 
 class Triangle : public Shape
@@ -8,7 +8,7 @@ public:
 	~Triangle() override;
 	void Draw(Renderer& renderer) override;
 	void Update(float deltaTime) override;
-	void ProcessInput() override {}
+	void ProcessInput(float deltaTime) override {}
 
 private:
 	void CreateMesh(Renderer& renderer) override;

@@ -1,4 +1,4 @@
-#include "Rectangle.h"
+﻿#include "Rectangle.h"
 #include "Math.h"
 #include "Mesh.h"
 #include "Shader.h"
@@ -64,10 +64,9 @@ void Rectangle::Update(float deltaTime)
 
 }
 
-void Rectangle::ProcessInput()
+void Rectangle::ProcessInput(float deltaTime)
 {
     int keys[] = { 'W', 'A', 'S', 'D' };
-    auto now = std::chrono::steady_clock::now();
     // The threshold time between one move and the next
     float moveDelay = 0.8f;
 
@@ -84,19 +83,19 @@ void Rectangle::ProcessInput()
                 if (!keyStates[key].isPressd)
                 {
                     keyStates[key].isPressd = true;
-                    keyStates[key].pressTime = now;
+                    keyStates[key].timeSinceLastMove = 0.0f;
                     MoveInDirection(key);
 
                     // Set currently pressed key to active
                     activeKey = key;
                 }
-                else 
+                else
                 {
                     // if pressTime is longer than threshold, then move character again
-                    auto duration = std::chrono::duration<float>(now - keyStates[key].pressTime).count();
-                    if (duration >= moveDelay)
+                    keyStates[key].timeSinceLastMove += deltaTime;
+                    if (keyStates[key].timeSinceLastMove >= moveDelay)
                     {
-                        keyStates[key].pressTime = now;
+                        keyStates[key].timeSinceLastMove = 0.0f;
                         MoveInDirection(key);
                     }
                 }
@@ -108,8 +107,9 @@ void Rectangle::ProcessInput()
             {
                 activeKey = 0;
             }
-            
+
             keyStates[key].isPressd = false;
+            keyStates[key].timeSinceLastMove = 0.0f;
         }
     }
 }

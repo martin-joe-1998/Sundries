@@ -1,4 +1,4 @@
-#include "Game.h"
+﻿#include "Game.h"
 #include "Triangle.h"
 #include "Rectangle.h"
 #include <iostream>
@@ -59,6 +59,19 @@ void Game::RunLoop()
 		if (mGameState == EQuit)
 			break;
 
+		// Compute delta time
+		// Wait until 16ms has elapsed since last frame (Frame Rate 60 )
+		while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
+
+		deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
+		if (deltaTime > 0.05f)
+		{
+			deltaTime = 0.05f;
+		}
+		printf("DeltaTime is %f\n", deltaTime);
+
+		mTicksCount = SDL_GetTicks();
+
 		ProcessInput();
 		UpdateGame();
 		GenerateOutput();
@@ -98,7 +111,7 @@ void Game::ProcessInput()
 	// Move rectangle by keyboard input
 	if (mGameState == EGameplay)
 	{
-		mRectangle->ProcessInput();
+		mRectangle->ProcessInput(deltaTime);
 	}
 }
 
@@ -110,16 +123,16 @@ void Game::UpdateGame()
 {
 	// Compute delta time
 	// Wait until 16ms has elapsed since last frame (Frame Rate 60 )
-	while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
-
-	float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
-	if (deltaTime > 0.05f)
-	{
-		deltaTime = 0.05f;
-	}
-	printf("DeltaTime is %f\n", deltaTime);
-
-	mTicksCount = SDL_GetTicks();
+	// while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
+	// 
+	// float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
+	// if (deltaTime > 0.05f)
+	// {
+	// 	deltaTime = 0.05f;
+	// }
+	// printf("DeltaTime is %f\n", deltaTime);
+	// 
+	// mTicksCount = SDL_GetTicks();
 	
 	if (mGameState == EGameplay)
 	{

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Renderer.h"
 #include "Mesh.h"
 #include "Transform.h"
@@ -10,7 +10,7 @@ public:
     virtual ~Shape();
     virtual void Draw(Renderer& renderer) = 0;
     virtual void Update(float deltaTime) = 0;
-    virtual void ProcessInput() = 0;
+    virtual void ProcessInput(float deltaTime) = 0;
 
 protected:
     Shape() {}

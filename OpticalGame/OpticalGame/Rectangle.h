@@ -1,6 +1,5 @@
-#pragma once
+﻿#pragma once
 #include "Shape.h"
-#include <chrono>
 #include <unordered_map>
 
 class Rectangle : public Shape
@@ -10,12 +9,12 @@ public:
 	~Rectangle() override;
 	void Draw(Renderer& renderer) override;
 	void Update(float deltaTime) override;
-	void ProcessInput() override;
+	void ProcessInput(float deltaTime) override;
 
 private:
 	struct KeyState {
 		bool isPressd = false;
-		std::chrono::steady_clock::time_point pressTime;
+		float timeSinceLastMove = 0.0f;
 	};
 	std::unordered_map<int, KeyState> keyStates;
 	// The key that was pressd currently, 0 means no key pressed

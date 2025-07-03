@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -36,5 +36,7 @@ private:
 	class Triangle* mTriangle;
 	class Rectangle* mRectangle;
 	class Renderer* mRenderer;
+
+	float deltaTime = 0.0f;
 };
 
