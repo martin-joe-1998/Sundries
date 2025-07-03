@@ -13,6 +13,9 @@ public:
 	void RunLoop();
 	void Shutdown();
 
+	void AddActor(class Actor* actor) {}
+	void RemoveActor(class Actor* actor) {}
+
 	enum GameState
 	{
 		EMainMenu,
