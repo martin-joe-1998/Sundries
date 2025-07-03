@@ -4,10 +4,13 @@
 #include "Shader.h"
 #include <fstream>
 #include <vector>
+#include <Windows.h>
 
 Rectangle::Rectangle(Renderer& renderer)
 {
-	CreateMesh(renderer);
+    m_transform = std::make_unique<Transform>();
+
+    CreateMesh(renderer);
 	CreateShaders(renderer);
 }
 
@@ -15,7 +18,8 @@ Rectangle::~Rectangle()
 {
 	if (m_vertexBuffer) m_vertexBuffer->Release();
 	if (m_indexBuffer) m_indexBuffer->Release();
-	if (m_constantBuffer) m_constantBuffer->Release();
+	if (m_cBufferPermanent) m_cBufferPermanent->Release();
+    if (m_cBufferEveryFrame) m_cBufferEveryFrame->Release();
 	if (m_vertexShader) m_vertexShader->Release();
 	if (m_pixelShader) m_pixelShader->Release();
 	if (m_inputLayout) m_inputLayout->Release();
@@ -27,23 +31,24 @@ void Rectangle::Draw(Renderer& renderer)
 {
     auto deviceContext = renderer.GetDeviceContext();
 
-	// Update the constant buffer with the world, view, and projection matrices
-	Mesh::ConstantBuffer cb;
-	cb.worldMx = Matrix4::Transpose(m_worldMatrix);
-	cb.viewMx = Matrix4::Transpose(m_viewMatrix);
-	cb.projectionMx = Matrix4::Transpose(m_projectionMatrix);
+	// Update the constant buffer with the world matrices
+	Mesh::CBufferEveryFrame cbEveryFrame;
+
+    m_worldMatrix = m_transform->ComputeWorldMatrix();
+    cbEveryFrame.worldMx = Matrix4::Transpose(m_worldMatrix);
     deviceContext->UpdateSubresource(
-        m_constantBuffer,
+        m_cBufferEveryFrame,
         0,
         nullptr,
-        &cb,
+        &cbEveryFrame,
         0,
         0
 	);
 
     // Set the rectangle shader
     deviceContext->VSSetShader(m_vertexShader, nullptr, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &m_constantBuffer);
+    deviceContext->VSSetConstantBuffers(0, 1, &m_cBufferPermanent);
+	deviceContext->VSSetConstantBuffers(1, 1, &m_cBufferEveryFrame);
     deviceContext->PSSetShader(m_pixelShader, nullptr, 0);
 
     // Set the texture and sampler state
@@ -56,6 +61,102 @@ void Rectangle::Draw(Renderer& renderer)
 
 void Rectangle::Update(float deltaTime)
 {
+
+}
+
+void Rectangle::ProcessInput()
+{
+    int keys[] = { 'W', 'A', 'S', 'D' };
+    auto now = std::chrono::steady_clock::now();
+    // The threshold time between one move and the next
+    float moveDelay = 0.8f;
+
+    for (int key : keys)
+    {
+        bool isCurrentlyPressed = (GetAsyncKeyState(key) & 0x8000) != 0;
+
+        if (isCurrentlyPressed)
+        {
+            // if no key is pressed or current key is been pressed
+            if (activeKey == 0 || activeKey == key)
+            {
+                // Move character and reverse flag, record time when first time the button is pressed.
+                if (!keyStates[key].isPressd)
+                {
+                    keyStates[key].isPressd = true;
+                    keyStates[key].pressTime = now;
+                    MoveInDirection(key);
+
+                    // Set currently pressed key to active
+                    activeKey = key;
+                }
+                else 
+                {
+                    // if pressTime is longer than threshold, then move character again
+                    auto duration = std::chrono::duration<float>(now - keyStates[key].pressTime).count();
+                    if (duration >= moveDelay)
+                    {
+                        keyStates[key].pressTime = now;
+                        MoveInDirection(key);
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (activeKey == key)
+            {
+                activeKey = 0;
+            }
+            
+            keyStates[key].isPressd = false;
+        }
+    }
+}
+
+void Rectangle::MoveInDirection(int key)
+{
+    switch (key)
+    {
+    case 'W':
+        m_transform->SetPosition(
+            Vector3(
+                m_transform->GetPosition().x, 
+                m_transform->GetPosition().y + gridSize,  
+                m_transform->GetPosition().z
+            )
+        );
+        break;
+    case 'S':
+        m_transform->SetPosition(
+            Vector3(
+                m_transform->GetPosition().x,
+                m_transform->GetPosition().y - gridSize,
+                m_transform->GetPosition().z
+            )
+        );
+        break;
+    case 'A':
+        m_transform->SetPosition(
+            Vector3(
+                m_transform->GetPosition().x - gridSize,
+                m_transform->GetPosition().y,
+                m_transform->GetPosition().z
+            )
+        );
+        break;
+    case 'D':
+        m_transform->SetPosition(
+            Vector3(
+                m_transform->GetPosition().x + gridSize,
+                m_transform->GetPosition().y,
+                m_transform->GetPosition().z
+            )
+        );
+        break;
+    default:
+        break;
+    }
 }
 
 void Rectangle::CreateMesh(Renderer& renderer)
@@ -65,10 +166,10 @@ void Rectangle::CreateMesh(Renderer& renderer)
     // ----------------------------- Vertex -----------------------------
     // Define vertices for a rectangle
     Mesh::Vertex vertices[] = {
-        { Vector3(-0.5f,  0.5f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Left Up
-        { Vector3( 0.5f,  0.5f, 0.0f), Vector2(1.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f) }, // Right Up
-        { Vector3( 0.5f, -0.5f, 0.0f), Vector2(1.0f, 1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f) }, // Right Down
-        { Vector3(-0.5f, -0.5f, 0.0f), Vector2(0.0f, 1.0f), Vector4(0.3f, 0.4f, 0.5f, 1.0f) }, // Left Down
+        { Vector3( 0.0f,  0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Left Up
+        { Vector3( 1.0f,  0.0f, 0.0f), Vector2(1.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f) }, // Right Up
+        { Vector3( 1.0f, -1.0f, 0.0f), Vector2(1.0f, 1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f) }, // Right Down
+        { Vector3( 0.0f, -1.0f, 0.0f), Vector2(0.0f, 1.0f), Vector4(0.3f, 0.4f, 0.5f, 1.0f) }, // Left Down
     };
 
     // Create vertex buffer
@@ -133,15 +234,24 @@ void Rectangle::CreateMesh(Renderer& renderer)
 	// ----------------------------- Constant Buffer -----------------------------
     // Create constant buffer for transformation matrices
     bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    bufferDesc.ByteWidth = sizeof(Mesh::ConstantBuffer);
+    bufferDesc.ByteWidth = sizeof(Mesh::CBufferPermanent);
     bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     bufferDesc.CPUAccessFlags = 0;
-    hr = renderer.GetDevice()->CreateBuffer(&bufferDesc, nullptr, &m_constantBuffer);
+    hr = renderer.GetDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cBufferPermanent);
     if (FAILED(hr))
     {
-        MessageBox(nullptr, L"Failed to create constant buffer for rectangle.", L"Error", MB_OK | MB_ICONERROR);
+        MessageBox(nullptr, L"Failed to create cbufferPermanent for rectangle.", L"Error", MB_OK | MB_ICONERROR);
         exit(0);
     }
+
+    bufferDesc.ByteWidth = sizeof(Mesh::CBufferEveryFrame);
+    hr = renderer.GetDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cBufferEveryFrame);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"Failed to create cbufferEveryFrame for rectangle.", L"Error", MB_OK | MB_ICONERROR);
+        exit(0);
+    }
+
 
     // Load the texture
     hr = Shader::CreateTextureFromBMP(renderer.GetDevice(), L"Asset/Textures/Slime.bmp", &m_shaderResourceView);
@@ -168,12 +278,10 @@ void Rectangle::CreateMesh(Renderer& renderer)
     }
 
     // Initialize the world, view, and projection matrices
-	m_transform.rotation = Vector3(0.0f, 0.0f, 0.0f);    // Degrees
-	m_transform.position = Vector3(0.5f, -0.5f, 0.0f);   // World Space Position
-    m_transform.scale *= Vector3(2.0f, 2.0f, 1.0f);      // Meet with the screen size, keep scaleZ 1.0
-	m_worldMatrix = Matrix4::CreateTranslation(m_transform.position)
-                  * Matrix4::CreateRotationFromDegree(m_transform.rotation)
-                  * Matrix4::CreateScale(m_transform.scale);
+    m_transform->SetRotation(Vector3::Zero);    // Degrees
+    m_transform->SetPosition(Vector3::Zero);   // World Space Position
+    m_transform->SetScale(m_transform->GetScale() * Vector3(1.0f, 1.0f, 1.0f)); // Meet with the screen size, keep scaleZ 1.0
+    m_worldMatrix = m_transform->ComputeWorldMatrix();
 
     Vector3 Eye = Vector3(0.0f, 0.0f, -1.0f);
     Vector3 At = Vector3(0.0f, 0.0f, 0.0f);
@@ -185,6 +293,11 @@ void Rectangle::CreateMesh(Renderer& renderer)
         static_cast<float>(renderer.GetHeight()),
         0.1f, 100.0f
     );
+
+    Mesh::CBufferPermanent cbPermanent;
+    cbPermanent.viewMx = Matrix4::Transpose(m_viewMatrix);
+    cbPermanent.projectionMx = Matrix4::Transpose(m_projectionMatrix);
+    renderer.GetDeviceContext()->UpdateSubresource(m_cBufferPermanent, 0, nullptr, &cbPermanent, 0, 0);
 }
 
 void Rectangle::CreateShaders(Renderer& renderer)

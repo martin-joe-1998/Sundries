@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <SDL.h>
 
 class Game
 {
@@ -25,9 +26,11 @@ public:
 
 private:
 	void ProcessInput();
+	void HandleKeyPress(int key);
 	void UpdateGame();
 	void GenerateOutput();
 
+	Uint32 mTicksCount;
 	GameState mGameState;
 
 	class Triangle* mTriangle;

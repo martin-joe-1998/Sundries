@@ -18,7 +18,8 @@ Game::Game()
 
 bool Game::Initialize()  
 {  
-    mRenderer = new Renderer(this);  
+	// Create the renderer
+	mRenderer = new Renderer(this);  
 
     if (!mRenderer->Initialize(1600, 900))  
     {  
@@ -28,8 +29,11 @@ bool Game::Initialize()
         return false;  
     }  
 
-    mTriangle = new class Triangle(*mRenderer);  
+	// Create shape instance
     mRectangle = new class Rectangle(*mRenderer);
+
+	// Initalize tickCount
+	mTicksCount = SDL_GetTicks();
 
     return true;  
 }
@@ -90,13 +94,36 @@ void Game::ProcessInput()
 		}
 		return;
 	}
+
+	// Move rectangle by keyboard input
+	if (mGameState == EGameplay)
+	{
+		mRectangle->ProcessInput();
+	}
+}
+
+void Game::HandleKeyPress(int key)
+{
 }
 
 void Game::UpdateGame()
 {
+	// Compute delta time
+	// Wait until 16ms has elapsed since last frame (Frame Rate 60 )
+	while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
+
+	float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
+	if (deltaTime > 0.05f)
+	{
+		deltaTime = 0.05f;
+	}
+	printf("DeltaTime is %f\n", deltaTime);
+
+	mTicksCount = SDL_GetTicks();
+	
 	if (mGameState == EGameplay)
 	{
-
+		mRectangle->Update(deltaTime);
 	}
 
 	return;
@@ -108,7 +135,6 @@ void Game::GenerateOutput()
 	mRenderer->BeginFrame();
 	// Rendering you know aocnuewrgnoivne....orz
 	// renderer.Draw();  
-	//mTriangle->Draw(*mRenderer);
 	mRectangle->Draw(*mRenderer);
 	mRenderer->EndFrame();
 }
