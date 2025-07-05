@@ -1,0 +1,6 @@
+关于光学Ⅱ的Component系统的一些笔记：
+
+关于Actor中Component的管理：
+    • 需要频繁主动访问的组件（如 AudioComponent）通常作为成员变量保存。
+    • 只需挂载一次，由 Actor 统一管理的组件（如 MeshComponent、SpriteComponent）可以不用成员变量，Actor 会自动管理其生命周期。
+        这种设计让代码更简洁，避免重复管理组件指针。
