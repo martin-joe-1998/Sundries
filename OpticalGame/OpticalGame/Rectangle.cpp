@@ -2,6 +2,7 @@
 #include "Math.h"
 #include "Mesh.h"
 #include "Shader.h"
+#include "MoveComponent.h"
 #include <fstream>
 #include <vector>
 #include <Windows.h>
@@ -9,6 +10,7 @@
 Rectangle::Rectangle(Renderer& renderer)
 {
     m_transform = std::make_unique<Transform>();
+    //mMoveComp = new MoveComponent(this);
 
     CreateMesh(renderer);
 	CreateShaders(renderer);

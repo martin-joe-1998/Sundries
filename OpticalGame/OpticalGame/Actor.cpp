@@ -50,17 +50,17 @@ void Actor::UpdateActor(float deltaTime)
 {
 }
 
-void Actor::ProcessInput(const uint8_t* keyState)
+void Actor::ProcessInput(float deltaTime)
 {
 	if (mState == EActive)
 	{
 		// First process input for components
 		for (auto comp : mComponents)
 		{
-			comp->ProcessInput(keyState);
+			comp->ProcessInput(deltaTime);
 		}
 
-		ActorInput(keyState);
+		//ActorInput(keyState);
 	}
 }
 

@@ -28,5 +28,7 @@ private:
 	Matrix4 m_worldMatrix;
 	Matrix4 m_viewMatrix;
 	Matrix4 m_projectionMatrix;
+
+	class MoveComponent* mMoveComp;
 };
 

@@ -12,7 +12,7 @@ public:
 	// Update this component by delta time
 	virtual void Update(float deltaTime);
 	// Process input for this component
-	virtual void ProcessInput(const uint8_t* keyState) {}
+	virtual void ProcessInput(float deltaTime) {}
 	// Called when world transform changes
 	virtual void OnUpdateWorldTransform() {}
 

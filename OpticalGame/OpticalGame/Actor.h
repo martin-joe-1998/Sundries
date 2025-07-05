@@ -24,7 +24,7 @@ public:
 	virtual void UpdateActor(float deltaTime);
 
 	// ProcessInput function called from Game (not overridable)
-	void ProcessInput(const uint8_t* keyState);
+	void ProcessInput(float deltaTime);
 	// Any actor-specific input code (overridable)
 	virtual void ActorInput(const uint8_t* keyState);
 
