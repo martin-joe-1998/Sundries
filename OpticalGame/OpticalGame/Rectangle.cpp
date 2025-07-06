@@ -66,58 +66,35 @@ void Rectangle::Update(float deltaTime)
 
 }
 
-void Rectangle::ProcessInput(float deltaTime, const std::unordered_map<int, bool>& keyState)
+void Rectangle::ProcessInput(float deltaTime, std::vector<KeyState>& keyStates)
 {
-    int keys[] = { 'W', 'A', 'S', 'D' };
+    //int keys[] = { 'W', 'A', 'S', 'D' };
     // The threshold time between one move and the next
     float moveDelay = 0.8f;
 
-    for (int key : keys)
+    for (auto& ks : keyStates)
     {
-        // Get keystate at current frame
-        bool isCurrentlyPressed = false;
-        auto it = keyState.find(key);
-        if (it != keyState.end())
-        {
-            isCurrentlyPressed = it->second;
-        }
+        if (ks.key != 'W' && ks.key != 'A' && ks.key != 'S' && ks.key != 'D')
+            continue;
 
-        if (isCurrentlyPressed)
+        if (activeKey == 0 || activeKey == ks.key)
         {
-            // if no key is pressed or current key is been pressed
-            if (activeKey == 0 || activeKey == key)
+            // First been pressed
+            if (ks.isPressed && ks.timeSinceLastMove == 0.0f)
             {
-                // Move character and reverse flag, record time when first time the button is pressed.
-                if (!mKeyStates[key].isPressd)
-                {
-                    mKeyStates[key].isPressd = true;
-                    mKeyStates[key].timeSinceLastMove = 0.0f;
-                    MoveInDirection(key);
-
-                    // Set currently pressed key to active
-                    activeKey = key;
-                }
-                else
-                {
-                    // if pressTime is longer than threshold, then move character again
-                    mKeyStates[key].timeSinceLastMove += deltaTime;
-                    if (mKeyStates[key].timeSinceLastMove >= moveDelay)
-                    {
-                        mKeyStates[key].timeSinceLastMove = 0.0f;
-                        MoveInDirection(key);
-                    }
-                }
+                MoveInDirection(ks.key);
+                activeKey = ks.key;
             }
-        }
-        else
-        {
-            if (activeKey == key)
+            else if (ks.isPressed && ks.timeSinceLastMove >= moveDelay)
+            {
+                MoveInDirection(ks.key);
+                ks.timeSinceLastMove = 0.0f;
+            }
+            // Key released
+            else if (!ks.isPressed && activeKey == ks.key)
             {
                 activeKey = 0;
             }
-
-            mKeyStates[key].isPressd = false;
-            mKeyStates[key].timeSinceLastMove = 0.0f;
         }
     }
 }

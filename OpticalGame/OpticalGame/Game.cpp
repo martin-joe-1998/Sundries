@@ -1,5 +1,5 @@
 ﻿#include "Game.h"
-#include "Triangle.h"
+// #include "Triangle.h"
 #include "Rectangle.h"
 #include <iostream>
 
@@ -32,8 +32,16 @@ bool Game::Initialize()
 	// Create shape instance
     mRectangle = new class Rectangle(*mRenderer);
 
-	// Initalize tickCount
+	// Initialize tickCount
 	mTicksCount = SDL_GetTicks();
+
+    // Initialize input key state instance
+	int keys[] = { 'W', 'A', 'S', 'D' };
+	for (int key : keys) {
+		Shape::KeyState ks;
+		ks.key = key;
+		mKeyStates.push_back(ks);
+	}
 
     return true;  
 }
@@ -109,16 +117,40 @@ void Game::ProcessInput()
 	}
 
 	// Detect specific key's state
-	std::unordered_map<int, bool> keyState;
-	int keys[] = { 'W', 'A', 'S', 'D' };
-	for (int key : keys) {
-		keyState[key] = (GetAsyncKeyState(key) & 0x8000) != 0;
+	//std::unordered_map<int, bool> keyState;
+	//int keys[] = { 'W', 'A', 'S', 'D' };
+	//for (int key : keys) {
+	//	keyState[key] = (GetAsyncKeyState(key) & 0x8000) != 0;
+	//}
+
+	for (auto& ks : mKeyStates)
+	{
+		bool isCurrentlyPressed = (GetAsyncKeyState(ks.key) & 0x8000) != 0;
+		
+		// If current key is pressed
+		if (isCurrentlyPressed)
+		{
+			if (ks.isPressed)
+			{
+				ks.timeSinceLastMove += deltaTime;
+			}
+			else
+			{
+				ks.isPressed = true;
+				ks.timeSinceLastMove = 0.0f;
+			}
+		}
+		else
+		{
+			ks.isPressed = false;
+			ks.timeSinceLastMove = 0.0f;
+		}
 	}
 
 	// Move rectangle by keyboard input
 	if (mGameState == EGameplay)
 	{
-		mRectangle->ProcessInput(deltaTime, keyState);
+		mRectangle->ProcessInput(deltaTime, mKeyStates);
 	}
 }
 

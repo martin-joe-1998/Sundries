@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <SDL.h>
+#include "Shape.h"
 
 class Game
 {
@@ -35,6 +36,7 @@ private:
 
 	Uint32 mTicksCount;
 	GameState mGameState;
+	std::vector<Shape::KeyState> mKeyStates;
 
 	//class Triangle* mTriangle;
 	class Rectangle* mRectangle;

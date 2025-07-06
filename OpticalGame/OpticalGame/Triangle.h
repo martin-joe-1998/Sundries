@@ -8,7 +8,7 @@ public:
 	~Triangle() override;
 	void Draw(Renderer& renderer) override;
 	void Update(float deltaTime) override;
-	void ProcessInput(float deltaTime, const std::unordered_map<int, bool>& keyState) override {}
+	void ProcessInput(float deltaTime, std::vector<KeyState>& keyStates) override {}
 
 private:
 	void CreateMesh(Renderer& renderer) override;
