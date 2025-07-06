@@ -4,3 +4,25 @@
     • 需要频繁主动访问的组件（如 AudioComponent）通常作为成员变量保存。
     • 只需挂载一次，由 Actor 统一管理的组件（如 MeshComponent、SpriteComponent）可以不用成员变量，Actor 会自动管理其生命周期。
         这种设计让代码更简洁，避免重复管理组件指针。
+
+
+推荐的组件化设计最佳实践：
+    1.	输入处理阶段（ActorInput）
+        •	只负责读取输入（如按键、手柄等），并把输入意图（如“想往前走”）传递给负责移动的组件（如 MoveComponent）。
+        •	例如：mMoveComponent->SetForwardSpeed(1.0f); 或 mMoveComponent->SetMoveDirection(dir);
+        •	不要直接在 ActorInput 里修改 Actor 的 transform。
+    2.	UpdateActor 阶段
+        •	只处理与 Actor 本身相关的逻辑（如AI、生命周期等），不直接处理移动。
+        •	组件（如 MoveComponent）会在 UpdateComponents 阶段自动被调用，负责根据输入和物理等更新 Actor 的 transform（位置、旋转等）。
+        •	你可以在 UpdateActor 里做一些与 transform 相关的后处理，但一般不直接做移动。
+    3.	变换矩阵和渲染
+        •	Actor 的 transform（位置、旋转、缩放）在 MoveComponent 的 Update 里被更新。
+        •	Actor 的 ComputeWorldTransform() 会在需要时自动更新矩阵。
+        •	渲染时，Renderer 会从 Actor 获取最新的 WorldTransform 传给 shader。
+---
+总结
+    •	ActorInput：只负责把输入意图传递给 MoveComponent。
+    •	MoveComponent::Update：根据输入和物理更新 Actor 的 transform。
+    •	UpdateActor：只做 Actor 级别的逻辑，不直接处理移动。
+    •	渲染：自动获取最新的 transform。
+    这样做可以让输入、移动、渲染解耦，符合组件化和单一职责原则，易于维护和扩展。

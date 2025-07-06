@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "Transform.h"
 #include <memory>
+#include <unordered_map>
 
 class Shape
 {
@@ -10,7 +11,7 @@ public:
     virtual ~Shape();
     virtual void Draw(Renderer& renderer) = 0;
     virtual void Update(float deltaTime) = 0;
-    virtual void ProcessInput(float deltaTime) = 0;
+    virtual void ProcessInput(float deltaTime, const std::unordered_map<int, bool>& keyState) {}
 
 protected:
     Shape() {}

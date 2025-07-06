@@ -66,7 +66,7 @@ void Rectangle::Update(float deltaTime)
 
 }
 
-void Rectangle::ProcessInput(float deltaTime)
+void Rectangle::ProcessInput(float deltaTime, const std::unordered_map<int, bool>& keyState)
 {
     int keys[] = { 'W', 'A', 'S', 'D' };
     // The threshold time between one move and the next
@@ -74,7 +74,13 @@ void Rectangle::ProcessInput(float deltaTime)
 
     for (int key : keys)
     {
-        bool isCurrentlyPressed = (GetAsyncKeyState(key) & 0x8000) != 0;
+        // Get keystate at current frame
+        bool isCurrentlyPressed = false;
+        auto it = keyState.find(key);
+        if (it != keyState.end())
+        {
+            isCurrentlyPressed = it->second;
+        }
 
         if (isCurrentlyPressed)
         {
@@ -82,10 +88,10 @@ void Rectangle::ProcessInput(float deltaTime)
             if (activeKey == 0 || activeKey == key)
             {
                 // Move character and reverse flag, record time when first time the button is pressed.
-                if (!keyStates[key].isPressd)
+                if (!mKeyStates[key].isPressd)
                 {
-                    keyStates[key].isPressd = true;
-                    keyStates[key].timeSinceLastMove = 0.0f;
+                    mKeyStates[key].isPressd = true;
+                    mKeyStates[key].timeSinceLastMove = 0.0f;
                     MoveInDirection(key);
 
                     // Set currently pressed key to active
@@ -94,10 +100,10 @@ void Rectangle::ProcessInput(float deltaTime)
                 else
                 {
                     // if pressTime is longer than threshold, then move character again
-                    keyStates[key].timeSinceLastMove += deltaTime;
-                    if (keyStates[key].timeSinceLastMove >= moveDelay)
+                    mKeyStates[key].timeSinceLastMove += deltaTime;
+                    if (mKeyStates[key].timeSinceLastMove >= moveDelay)
                     {
-                        keyStates[key].timeSinceLastMove = 0.0f;
+                        mKeyStates[key].timeSinceLastMove = 0.0f;
                         MoveInDirection(key);
                     }
                 }
@@ -110,8 +116,8 @@ void Rectangle::ProcessInput(float deltaTime)
                 activeKey = 0;
             }
 
-            keyStates[key].isPressd = false;
-            keyStates[key].timeSinceLastMove = 0.0f;
+            mKeyStates[key].isPressd = false;
+            mKeyStates[key].timeSinceLastMove = 0.0f;
         }
     }
 }

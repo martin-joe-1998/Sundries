@@ -68,7 +68,7 @@ void Game::RunLoop()
 		{
 			deltaTime = 0.05f;
 		}
-		printf("DeltaTime is %f\n", deltaTime);
+		// printf("DeltaTime is %f\n", deltaTime);
 
 		mTicksCount = SDL_GetTicks();
 
@@ -86,7 +86,7 @@ void Game::Shutdown()
 	CoUninitialize();
 
 	delete mRenderer;
-	delete mTriangle;
+	//delete mTriangle;
 	delete mRectangle;
 
 	return;
@@ -108,10 +108,17 @@ void Game::ProcessInput()
 		return;
 	}
 
+	// Detect specific key's state
+	std::unordered_map<int, bool> keyState;
+	int keys[] = { 'W', 'A', 'S', 'D' };
+	for (int key : keys) {
+		keyState[key] = (GetAsyncKeyState(key) & 0x8000) != 0;
+	}
+
 	// Move rectangle by keyboard input
 	if (mGameState == EGameplay)
 	{
-		mRectangle->ProcessInput(deltaTime);
+		mRectangle->ProcessInput(deltaTime, keyState);
 	}
 }
 

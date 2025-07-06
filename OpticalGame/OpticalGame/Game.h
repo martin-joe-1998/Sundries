@@ -36,7 +36,7 @@ private:
 	Uint32 mTicksCount;
 	GameState mGameState;
 
-	class Triangle* mTriangle;
+	//class Triangle* mTriangle;
 	class Rectangle* mRectangle;
 	class Renderer* mRenderer;
 

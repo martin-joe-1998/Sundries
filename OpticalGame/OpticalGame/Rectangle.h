@@ -9,14 +9,14 @@ public:
 	~Rectangle() override;
 	void Draw(Renderer& renderer) override;
 	void Update(float deltaTime) override;
-	void ProcessInput(float deltaTime) override;
+	void ProcessInput(float deltaTime, const std::unordered_map<int, bool>& keyState) override;
 
 private:
 	struct KeyState {
 		bool isPressd = false;
 		float timeSinceLastMove = 0.0f;
 	};
-	std::unordered_map<int, KeyState> keyStates;
+	std::unordered_map<int, KeyState> mKeyStates;
 	// The key that was pressd currently, 0 means no key pressed
 	int activeKey = 0;
 	float gridSize = 100.0f;
