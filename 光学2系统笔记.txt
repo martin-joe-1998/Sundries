@@ -28,6 +28,7 @@
     这样做可以让输入、移动、渲染解耦，符合组件化和单一职责原则，易于维护和扩展。
 
 
+关于Stage管理结构
 从架构设计和可维护性角度来看，推荐第二种方案：
     让Stage拥有自己的ProcessInput和Update等接口，并在Game.cpp中通过stage->Update(deltaTime)、stage->ProcessInput(...)等方式统一管理每个关卡的生命周期和内部对象。
     原因分析
@@ -42,35 +43,37 @@
     4. 便于单元测试和调试
         •	单独测试某个Stage的逻辑变得简单，不需要依赖整个Game的全局状态。
 
+
 关于如何在Game.cpp中管理Stage的切换和加载：
-// Game.h
-size_t mCurrentStageIndex = 0;
+    // Game.h
+    size_t mCurrentStageIndex = 0;
 
-// Game.cpp
-void Game::LoadData() {
-    // 创建所有Stage并加入mStages
-    mStages.push_back(new Stage(this));
-    mStages.push_back(new Stage(this));
-    // ...
-    mCurrentStageIndex = 0;
-    mStage = mStages[mCurrentStageIndex];
-}
+    // Game.cpp
+    void Game::LoadData() {
+        // 创建所有Stage并加入mStages
+        mStages.push_back(new Stage(this));
+        mStages.push_back(new Stage(this));
+        // ...
+        mCurrentStageIndex = 0;
+        mStage = mStages[mCurrentStageIndex];
+    }
 
-void Game::UpdateGame() {
-    if (mGameState == EGameplay && mStage) {
-        mStage->Update(deltaTime);
-        if (mStage->IsCompleted()) {
-            // 切换到下一个Stage
-            ++mCurrentStageIndex;
-            if (mCurrentStageIndex < mStages.size()) {
-                mStage = mStages[mCurrentStageIndex];
-                mStage->LoadData(); // 如果有需要
-            } else {
-                mGameState = EQuit; // 或进入通关界面
+    void Game::UpdateGame() {
+        if (mGameState == EGameplay && mStage) {
+            mStage->Update(deltaTime);
+            if (mStage->IsCompleted()) {
+                // 切换到下一个Stage
+                ++mCurrentStageIndex;
+                if (mCurrentStageIndex < mStages.size()) {
+                    mStage = mStages[mCurrentStageIndex];
+                    mStage->LoadData(); // 如果有需要
+                } else {
+                    mGameState = EQuit; // 或进入通关界面
+                }
             }
         }
     }
-}
+
 
 关于内存泄露风险：
     1. Game类中的裸指针
@@ -94,16 +97,22 @@ void Game::UpdateGame() {
         3.	Game析构或Shutdown时，需遍历delete mStages和mActors，并delete mSlimeActor和mStage（如果不是mStages中的元素）。
         4.	考虑将mActors、mStages等改为std::vector<std::unique_ptr<Actor>>和std::vector<std::unique_ptr<Stage>>，这样无需手动delete。
 
+
 关于前置声明在头文件中使用smart pointer
-// Stage.h
-#pragma once
-#include <memory>
-class Map; // 前置声明
+    // Stage.h
+    #pragma once
+    #include <memory>
+    class Map; // 前置声明
+    
+    class Stage {
+        // ...
+        std::unique_ptr<Map> mMap;
+        // ...
+    };
 
-class Stage {
-    // ...
-    std::unique_ptr<Map> mMap;
-    // ...
-};
 
-class Game* mGame这样对于游戏本身的参照不应该使用unique_ptr!!! 其指针的生命周期应该由游戏本身管理！！
+关于何时使用一般指针或smart pointer
+    class Game* mGame这样对于游戏本身的参照不应该使用unique_ptr!!! 其指针的生命周期应该由游戏本身管理!!!
+结论
+    •	成员变量指向拥有者（如Game）的指针，继续用裸指针即可。
+    •	只有“拥有关系”才用unique_ptr或shared_ptr。
