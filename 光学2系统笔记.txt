@@ -71,3 +71,39 @@ void Game::UpdateGame() {
         }
     }
 }
+
+关于内存泄露风险：
+    1. Game类中的裸指针
+        •	mRenderer, mSlimeActor, mMap, mStage, mStages（vector of Stage*），mActors（vector of Actor*）等均为裸指针。
+        •	Shutdown()只delete了mRenderer和mMap，没有delete mSlimeActor、mStage、mStages、mActors。
+    2. Stage类析构
+        •	Stage::~Stage()会delete mSlimeActor和mActors，但mActors的清理方式有问题：只delete最后一个元素，没有pop_back，可能会死循环。
+        •	mMap用unique_ptr，安全。
+    3. mStages和mStage
+        •	Game析构或关卡切换时没有delete mStage和mStages中的Stage对象，容易泄漏。
+    4. mActors
+        •	Game的mActors和mPendingActors没有在析构或关卡切换时delete。
+    ---
+    建议的改进方向
+        1.	建议全部用智能指针（如std::unique_ptr或std::shared_ptr）管理资源，避免裸指针。
+        2.	Stage析构时，清理mActors应为：
+        while (!mActors.empty()) {
+            delete mActors.back();
+               mActors.pop_back();
+           }
+        3.	Game析构或Shutdown时，需遍历delete mStages和mActors，并delete mSlimeActor和mStage（如果不是mStages中的元素）。
+        4.	考虑将mActors、mStages等改为std::vector<std::unique_ptr<Actor>>和std::vector<std::unique_ptr<Stage>>，这样无需手动delete。
+
+关于前置声明在头文件中使用smart pointer
+// Stage.h
+#pragma once
+#include <memory>
+class Map; // 前置声明
+
+class Stage {
+    // ...
+    std::unique_ptr<Map> mMap;
+    // ...
+};
+
+class Game* mGame这样对于游戏本身的参照不应该使用unique_ptr!!! 其指针的生命周期应该由游戏本身管理！！
