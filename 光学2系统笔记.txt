@@ -26,3 +26,48 @@
     •	UpdateActor：只做 Actor 级别的逻辑，不直接处理移动。
     •	渲染：自动获取最新的 transform。
     这样做可以让输入、移动、渲染解耦，符合组件化和单一职责原则，易于维护和扩展。
+
+
+从架构设计和可维护性角度来看，推荐第二种方案：
+    让Stage拥有自己的ProcessInput和Update等接口，并在Game.cpp中通过stage->Update(deltaTime)、stage->ProcessInput(...)等方式统一管理每个关卡的生命周期和内部对象。
+    原因分析
+    1. 职责分明，解耦更好
+        •	Stage 作为关卡，天然应该管理属于自己的地图、Actor、通关条件等。这样每个Stage可以独立管理自己的资源和逻辑，便于扩展和维护。
+        •	Game 只需要负责Stage的切换、全局输入、游戏状态等，不需要关心每个Stage内部的细节。
+    2. 便于关卡切换和资源管理
+        •	切换关卡时，只需销毁当前Stage对象，加载下一个Stage即可，资源释放和初始化都可以在Stage内部完成，避免全局变量污染和资源泄漏。
+        •	每个Stage可以有不同的Actor、地图、规则，实现更灵活。
+    3. 代码复用和扩展性更强
+        •	以后如果有特殊关卡（比如Boss关、剧情关），只需继承Stage并重写相关方法即可，符合面向对象设计原则。
+    4. 便于单元测试和调试
+        •	单独测试某个Stage的逻辑变得简单，不需要依赖整个Game的全局状态。
+
+关于如何在Game.cpp中管理Stage的切换和加载：
+// Game.h
+size_t mCurrentStageIndex = 0;
+
+// Game.cpp
+void Game::LoadData() {
+    // 创建所有Stage并加入mStages
+    mStages.push_back(new Stage(this));
+    mStages.push_back(new Stage(this));
+    // ...
+    mCurrentStageIndex = 0;
+    mStage = mStages[mCurrentStageIndex];
+}
+
+void Game::UpdateGame() {
+    if (mGameState == EGameplay && mStage) {
+        mStage->Update(deltaTime);
+        if (mStage->IsCompleted()) {
+            // 切换到下一个Stage
+            ++mCurrentStageIndex;
+            if (mCurrentStageIndex < mStages.size()) {
+                mStage = mStages[mCurrentStageIndex];
+                mStage->LoadData(); // 如果有需要
+            } else {
+                mGameState = EQuit; // 或进入通关界面
+            }
+        }
+    }
+}
