@@ -116,3 +116,36 @@
 结论
     •	成员变量指向拥有者（如Game）的指针，继续用裸指针即可。
     •	只有“拥有关系”才用unique_ptr或shared_ptr。
+
+
+关于如何让每个Actor子类可以读取自己专属的texture:
+    1. 修改Texture和SpriteComponent的构造函数，支持路径参数
+    class Texture {
+    public:
+        Texture(const std::wstring& path);
+        // ...
+    private:
+        std::wstring mPath;
+    };
+
+    Texture::Texture(const std::wstring& path) : mPath(path) {
+    // 在构造时就用mPath加载贴图
+    }
+
+    class SpriteComponent : public Component {
+    public:
+        SpriteComponent(Actor* owner, int drawOrder, const std::wstring& texturePath);
+        // ...
+    };
+
+    SpriteComponent::SpriteComponent(Actor* owner, int drawOrder, const std::wstring& texturePath)
+        : Component(owner), mDrawOrder(drawOrder) {
+        m_texture = std::make_unique<Texture>(texturePath);
+        // ...
+    }
+
+    2. 在Actor子类构造时传递路径
+    SlimeActor::SlimeActor(Game* game)
+        : Actor(game) {
+        mSpriteComponent = new SpriteComponent(this, drawOrder, L"Asset/Textures/Slime.bmp");
+    }
