@@ -9,7 +9,7 @@ using json = nlohmann::json;
 
 int main()  
 {  
-    std::ifstream file("testMap.json");
+    std::ifstream file("TileMap.json");
     json mapData;
     file >> mapData;
 
@@ -17,7 +17,8 @@ int main()
     int height = mapData["height"];
 
     // Get "data" from Layer 1
-    std::vector<int> flatData = mapData["layers"][0]["data"];
+    //std::vector<int> flatData = mapData["layers"][0]["data"];
+    std::vector<int> flatData = mapData["data"].get<std::vector<int>>();
 
     // Convert to 2d array
     std::vector<std::vector<int>> tileMap(height, std::vector<int>(width));
