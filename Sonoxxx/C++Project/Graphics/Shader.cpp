@@ -40,9 +40,9 @@ namespace sl
   }
 
   void Shader::Apply(ID3D11DeviceContext* context) {
-    context->IASetInputLayout(mInputLayout.Get());
-    //context->VSSetShader(mVertexShader.Get(), nullptr, 0);
-    //context->PSSetShader(mPixelShader.Get(), nullptr, 0);
+      // Shader のセットは SpriteComponent::Draw でやっているので、ここの二行を消した
+      // InputLayout のセットは今みたいに、CreateLayout の直後にやるので大丈夫だと思う！
+      context->IASetInputLayout(mInputLayout.Get());
   }
 
   ComPtr<ID3DBlob> Shader::CompileShader(const std::wstring& path, const std::string& entryPoint, const std::string& target)
@@ -82,9 +82,9 @@ namespace sl
   bool Shader::CreateLayout(ID3D11Device* device, ID3DBlob* vsBlob)
   {
     D3D11_INPUT_ELEMENT_DESC layout[] = {
-      { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-      //{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, offsetof(Vertex, uv),       D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+      { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     HRESULT hr = device->CreateInputLayout(layout, ARRAYSIZE(layout),

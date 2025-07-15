@@ -17,10 +17,10 @@ namespace sl
 
         //std::vector<Vertex> vertices(4);
         Vertex vertices[] = {
-            { Vector3(-0.5f,  0.5f, 0.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Left Up
-            { Vector3(0.5f,  0.5f, 0.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Right Up
-            { Vector3(0.5f, -0.5f, 0.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Right Down
-            { Vector3(-0.5f, -0.5f, 0.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Left Down
+            { Vector3(-0.5f,  0.5f, 0.0f), Vector2(0.0, 0.0), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Left Up
+            { Vector3( 0.5f,  0.5f, 0.0f), Vector2(1.0, 0.0), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Right Up
+            { Vector3( 0.5f, -0.5f, 0.0f), Vector2(1.0, 1.0), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Right Down
+            { Vector3(-0.5f, -0.5f, 0.0f), Vector2(0.0, 1.0), Vector4(1.0f, 0.0f, 0.0f, 1.0f) }, // Left Down
         };
 
         // Revise 1
