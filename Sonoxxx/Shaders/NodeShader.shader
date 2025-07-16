@@ -10,11 +10,13 @@
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Transparent" "Queue" = "Transparent" }
         LOD 100
 
         Pass
         {
+            Blend SrcAlpha OneMinusSrcAlpha
+            
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -46,6 +48,8 @@
                 float angleOffset = _AngleOffset;
                 float minAngle = fmod(67.5 + angleOffset, 360.0);
                 float maxAngle = fmod(minAngle + 45.0, 360.0);
+                float nodeWidth = _NodeWidth * (5.0 / 6.0);
+                float nodeRadius = _Radius;
 
                 // theta が [minAngle, maxAngle] の範囲内かどうかを判定
                 bool isAngleInRange = false;
@@ -60,7 +64,7 @@
 
                 // Node の Position が [_Radius, _Radius + _NodeWidth] の範囲内かどうかを判定
                 bool isPosInRange = false;
-                if (nodePos <= _Radius + _NodeWidth && nodePos >= _Radius)
+                if (nodePos <= nodeRadius + nodeWidth && nodePos >= nodeRadius)
                 {
                     isPosInRange = true;
                 }
@@ -103,6 +107,7 @@
                 if (isInRange > 0)
                 {
                     col = _NodeColor;
+                    col.a = smoothstep(0.45, 0.321, _Radius);
                 }
                 else
                 {

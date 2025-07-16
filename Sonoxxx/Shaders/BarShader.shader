@@ -21,9 +21,9 @@
             #include "UnityCG.cginc"
 
             #define BAR_COUNT 256
-            #define BAR_WIDTH 0.02
+            #define BAR_WIDTH 0.04
             #define RADIUS 2.6
-            #define MAX_HEIGHT 0.4
+            #define MAX_HEIGHT 0.6
 
             struct v2f
             {
