@@ -149,3 +149,53 @@
         : Actor(game) {
         mSpriteComponent = new SpriteComponent(this, drawOrder, L"Asset/Textures/Slime.bmp");
     }
+
+
+关于如何高效建立AddComponent, GetComponent系统：
+・Step 1：为所有组件提供静态 TypeID
+
+    class Component
+    {
+    public:
+    	virtual ~Component() = default;
+
+    	// Pure virtual type ID getter
+    	virtual size_t GetTypeID() const = 0;
+    };
+
+    template <typename T>
+    class TypedComponent : public Component
+    {
+    public:
+    	static size_t StaticTypeID()
+    	{
+    		static const char unique_var = 0;
+    		return reinterpret_cast<size_t>(&unique_var);
+    	}
+
+    	virtual size_t GetTypeID() const override
+    	{
+    		return StaticTypeID();
+    	}
+    };
+
+这段代码会为每种 Component 类型生成唯一的类型 ID。
+
+Step 2：使用 std::unordered_map<size_t, Component*>
+
+    std::unordered_map<size_t, Component*> mComponentMap;
+    
+    template <typename T>
+    void AddComponent(T* component)
+    {
+    	mComponentMap[T::StaticTypeID()] = component;
+    }
+    
+    template <typename T>
+    T* GetComponent()
+    {
+    	auto it = mComponentMap.find(T::StaticTypeID());
+    	if (it != mComponentMap.end())
+    		return static_cast<T*>(it->second);
+    	return nullptr;
+    }
