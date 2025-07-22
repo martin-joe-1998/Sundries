@@ -2,18 +2,28 @@
 {
     Properties
     {
+        [Header(Sky Setting)]
         _Exponent1 ("Exponent upward", Range(0.0, 5.0)) = 1.0
         _Exponent2 ("Exponent downward", Range(0.0, 5.0)) = 1.0
         _Intensity ("Intensity", Range(0.0, 2.0)) = 1.0
         _Color1 ("Sky Color Up", Color) = (0.0, 0.0, 0.0, 1.0)
         _Color2 ("Sky Color Middle", Color) = (0.0, 0.0, 0.0, 1.0)
         _Color3 ("Sky Color Down", Color) = (0.0, 0.0, 0.0, 1.0)
+        [Header(Star Setting)]
         [HDR] _StarColor ("Star Color", Color) = (0.3, 0.3, 0.8, 1.0)
         _StarDendity ("Star Dendity", float) = 90.0
         _StarSparsity ("Star Sparsity", float) = 40.0
         _StarSpeed ("Star Speed", float) = 1.0
         _StarFlickerPhase ("Star Flicker Phase", float) = 20.0
         _Reflection ("Reflection Y Stretch", Float) = 1.0
+        [Header(Cloud Setting)]
+        _CloudSpeed ("Cloud Speed", Float) = 1.0
+        _CloudScale ("Cloud Scale", Float) = 0.4
+        _CloudStartHeight ("Cloud Bottom", Float) = 1.5
+        _CloudEndHeight ("Cloud Top", Float) = 3.0
+        _CloudStep ("Cloud Step", Int) = 20
+        _CloudFlow ("Cloud Flow", float) = 0.7
+        [HDR] _CloudColor ("Cloud Color", Color) = (0.7, 0.7, 0.7, 1.0)
     }
     SubShader
     {
@@ -51,12 +61,21 @@
             fixed4 _Color1;
             fixed4 _Color2;
             fixed4 _Color3;
+
             fixed4 _StarColor;
             float _StarSpeed;
             float _Reflection;
             float _StarDendity;
             float _StarSparsity;
             float _StarFlickerPhase;
+
+            float _CloudSpeed;
+            float _CloudScale;
+            float _CloudStartHeight;
+            float _CloudEndHeight;
+            int _CloudStep;
+            float _CloudFlow;
+            fixed4 _CloudColor;
 
             // hash(p) ∈ [0.0, 1.0)
             float hash(float3 p)
@@ -76,9 +95,11 @@
 //                 /|       /|
 //                g--------h |
 //                | |      | |
-//                | a------|-b
+//                | a------|-b----→ X+
 //                |/       |/
-//                c--------d----→ X+
+//                c--------d
+//               /
+//              Y+
                 float a = hash(origin);
                 float b = hash(origin + float3(1, 0, 0));
                 float c = hash(origin + float3(0, 1, 0));
@@ -98,6 +119,79 @@
                        u.z);
             }
 
+            float CloudHash (float2 st) {
+                return frac(sin(dot(st.xy, float2(12.9898, 78.233))) * 43758.5453123);
+            }
+
+            float CloudNoise (float2 st, float flow) {
+                // Could rolling
+                st += float2(0, _Time.y * _CloudSpeed * flow);
+        
+                float2 i = floor(st);
+                float2 f = frac(st);
+        
+                float a = CloudHash(i);
+                float b = CloudHash(i + float2(1.0, 0.0));
+                float c = CloudHash(i + float2(0.0, 1.0));
+                float d = CloudHash(i + float2(1.0, 1.0));
+        
+                float2 u = f * f * (3.0 - 2.0 * f);
+        
+                return lerp(a, b, u.x) +
+                        (c - a)* u.y * (1.0 - u.x) +
+                        (d - b) * u.x * u.y;
+            }
+
+            float Cloudfbm (float2 st, float flow) 
+            {
+                float value = 0.0;
+                float amplitude = .5;
+                float frequency = 0.;
+        
+                for (int i = 0; i < 6; i++) {
+                    value += amplitude * CloudNoise(st,flow);
+                    st *= 2.;
+                    amplitude *= .5;
+                }
+
+                return value;
+            }
+
+            // Ray Marching Cloud
+            float SampleVolumeCloud(float3 rayDir, float cloudScale, float cloudStart, float cloudEnd, int steps, float flow)
+            {
+                float density = 0.0;
+            
+                for (int i = 0; i < steps; i++)
+                {
+                    // 現在の step が範囲 [cloudStart ~ cloudEnd] における位置（高さ）
+                    float t = lerp(cloudStart, cloudEnd, (float)i / (steps - 1));
+            
+                    // 現在の viewDir の高さ t におけるサンプル：P = rayOrigin + rayDir * (t / rayDir.y)
+                    float3 samplePos = rayDir * (t / max(rayDir.y, 0.001));
+            
+                    // 雲は地面と平行な平面上に存在し、移動する
+                    float2 cloudCoord = samplePos.xz * cloudScale;
+            
+                    // Cloud noise sampling
+                    float n = Cloudfbm(cloudCoord, flow);
+            
+                    // 雲が高いほど疎らになる
+                    float fade = smoothstep(cloudStart, cloudEnd, t);
+            
+                    // 雲の密度を累積する
+                    density += n * (1.0 - fade);
+                }
+            
+                // 規格化処理
+                density /= steps;
+            
+                // 雲の形状をふわふわにする
+                density = smoothstep(0.2, 0.6, density);
+            
+                return density;
+            }
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -109,6 +203,7 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
+                // ----------------------- 天 -----------------------
                 // 視線方向をサンプリングする
                 float viewDirY = i.viewDir.y;
                 float up = saturate(viewDirY);
@@ -123,6 +218,7 @@
                 // 指数関数で三つの色を融合して天の色を決める、全体の明度を _Intensity で制御
                 float4 skyCol = (_Color1 * p1 + _Color2 * p2 + _Color3 * p3) * _Intensity;
 
+                // ----------------------- 星 -----------------------
                 // 現在のピクセルにおける星の強さ(Strength)を計算する
                 float3 starCoord = fixed3(i.viewDir.x, i.viewDir.y * _Reflection, i.viewDir.z) * _StarDendity;
                 float baseNoise = valueNoise(starCoord);
@@ -136,8 +232,29 @@
                 // 星の色
                 fixed4 starCol = star * _StarColor;
 
+                // ----------------------- 雲 -----------------------
+                float3 rayOrigin = float3(0, 0, 0);
+                float3 rayDir = normalize(i.viewDir);
+                fixed4 cloudCol = fixed4(0, 0, 0, 0);
+
+                // 上空にだけ雲を表示させる
+                if (rayDir.y > 0)
+                {
+                    float cloud = SampleVolumeCloud(
+                                rayDir,
+                                _CloudScale,
+                                _CloudStartHeight,
+                                _CloudEndHeight,
+                                _CloudStep,
+                                _CloudFlow
+                            );
+                    cloudCol = _CloudColor * cloud;
+                }
+
                 // 天の色と星の色を alpha blend で融合
-                skyCol = skyCol * (1 - starCol.a) + starCol * starCol.a;
+                skyCol = lerp(skyCol, starCol, starCol.a);
+                // 更に雲の色を blend する
+                skyCol = lerp(skyCol, cloudCol, cloudCol.a);
 
                 return skyCol;
             }
