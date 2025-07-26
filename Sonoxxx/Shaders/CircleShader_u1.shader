@@ -4,12 +4,12 @@
     {
         _CircleWidth ("Circle Width", Range(0.0, 0.1)) = 0.05
         _InnerRadius ("Inner Radius", Range(0.0, 0.45)) = 0.45
+        _CircleAngleOffset ("Circle Angle Offset", Range(0.0, 359.0)) = 67.5
         _CircleColor ("Circle Color", Color) = (1, 1, 1, 1)
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
-        LOD 100
 
         Pass
         {
@@ -36,6 +36,7 @@
 
             float _CircleWidth;
             float _InnerRadius;
+            float _CircleAngleOffset;
             fixed4 _CircleColor;
 
             // HSV空間の色情報をRGBに変換
@@ -70,7 +71,7 @@
                 // [-180, 180) -> [0, 360)
                 theta = (theta < 0) ? (theta + 360) : theta; // [0, 360)
                 // 時計回りに theta を 67.5°回転、真上方向を八等分の最初のレーンにするために...
-                theta = fmod(theta - 67.5 + 360.0, 360.0);
+                theta = fmod(theta - _CircleAngleOffset + 360.0, 360.0);
                 // 360° を八等分する
                 int sector = (int)floor(theta / 45.0); // 0~7
 

@@ -4,8 +4,10 @@
     {
         _MainTex ("Texture", 2D) = "white" {}
         _NodeWidth ("Node Width", Range(0.0, 0.15)) = 0.07
+        _NodeLengthOffset ("Node Length Offset(Angle)", Range(-10, 10)) = 0.0
         _Radius ("Raduis", Range(0.0, 0.45)) = 0.35
         _AngleOffset ("Angle Offset", Range(0.0, 360.0)) = 0.0
+        _Separation ("Seperation Num", Range(1, 10)) = 8
         _NodeColor ("Node Color", Color) = (1, 1, 1, 1)
     }
     SubShader
@@ -39,15 +41,20 @@
             float4 _MainTex_ST;
 
             float _NodeWidth;
+            float _NodeLengthOffset;
             float _Radius;
             float _AngleOffset;
+            int _Separation;
             fixed4 _NodeColor;
 
             int EmitNode(float nodePos, float theta)
             {
+                // レーンの分割数に応じて各レーンの角度範囲を計算
+                float separationAngle = 360.0 / _Separation;
+                
                 float angleOffset = _AngleOffset;
-                float minAngle = fmod(67.5 + angleOffset, 360.0);
-                float maxAngle = fmod(minAngle + 45.0, 360.0);
+                float minAngle = fmod(90.0 - (separationAngle * 0.5) + angleOffset + _NodeLengthOffset, 360.0);
+                float maxAngle = fmod(minAngle + separationAngle - 2 * _NodeLengthOffset, 360.0);
                 float nodeWidth = _NodeWidth * (5.0 / 6.0);
                 float nodeRadius = _Radius;
 
