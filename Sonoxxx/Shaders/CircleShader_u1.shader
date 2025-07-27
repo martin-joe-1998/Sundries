@@ -5,7 +5,15 @@
         _CircleWidth ("Circle Width", Range(0.0, 0.1)) = 0.05
         _InnerRadius ("Inner Radius", Range(0.0, 0.45)) = 0.45
         _CircleAngleOffset ("Circle Angle Offset", Range(0.0, 359.0)) = 67.5
-        _CircleColor ("Circle Color", Color) = (1, 1, 1, 1)
+        //_CircleColor ("Circle Color", Color) = (1, 1, 1, 1)
+        [HDR] _SectorColor0 ("Sector 0 Color", Color) = (1,0,0,1)
+        [HDR] _SectorColor1 ("Sector 1 Color", Color) = (1,0.5,0,1)
+        [HDR] _SectorColor2 ("Sector 2 Color", Color) = (1,1,0,1)
+        [HDR] _SectorColor3 ("Sector 3 Color", Color) = (0,1,0,1)
+        [HDR] _SectorColor4 ("Sector 4 Color", Color) = (0,1,1,1)
+        [HDR] _SectorColor5 ("Sector 5 Color", Color) = (0,0,1,1)
+        [HDR] _SectorColor6 ("Sector 6 Color", Color) = (0.5,0,1,1)
+        [HDR] _SectorColor7 ("Sector 7 Color", Color) = (1,0,1,1)
     }
     SubShader
     {
@@ -37,7 +45,15 @@
             float _CircleWidth;
             float _InnerRadius;
             float _CircleAngleOffset;
-            fixed4 _CircleColor;
+            //fixed4 _CircleColor;
+            fixed4 _SectorColor0;
+            fixed4 _SectorColor1;
+            fixed4 _SectorColor2;
+            fixed4 _SectorColor3;
+            fixed4 _SectorColor4;
+            fixed4 _SectorColor5;
+            fixed4 _SectorColor6;
+            fixed4 _SectorColor7;
 
             // HSV空間の色情報をRGBに変換
             float3 hsv2rgb(float3 c)
@@ -45,6 +61,20 @@
                 float4 K = float4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
                 float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
                 return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
+            }
+            // RGB空間の色情報をHSVに変換
+            float3 rgb2hsv(float3 c)
+            {
+                float4 K = float4(0.0, -1.0/3.0, 2.0/3.0, -1.0);
+                float4 p = (c.g < c.b) ? float4(c.bg, K.wz) : float4(c.gb, K.xy);
+                float4 q = (c.r < p.x) ? float4(p.xyw, c.r) : float4(c.r, p.yzx);
+            
+                float d = q.x - min(q.w, q.y);
+                float e = 1.0e-10;
+                float h = abs(q.z + (q.w - q.y) / (6.0 * d + e));
+                float s = d / (q.x + e);
+                float v = q.x;
+                return float3(h, s, v);
             }
 
             // 頂点シェーダー
@@ -61,6 +91,10 @@
             {
                 // 適当にベースカラーを決める
                 fixed4 col = fixed4(0.0, 0.0, 0.0, 1.0);
+                fixed4 sectorColors[8] = {
+                    _SectorColor0, _SectorColor1, _SectorColor2, _SectorColor3,
+                    _SectorColor4, _SectorColor5, _SectorColor6, _SectorColor7
+                };
 
                 // センター位置を決める
                 float2 center = float2(0.5, 0.5);
@@ -86,8 +120,9 @@
                 if (isInRing > 0.0)
                 {
                     // 同じレーンの色を同じにする
-                    float3 rgb = hsv2rgb(float3(sector / 8.0, 1.0, 1.0));
-                    col = fixed4(rgb, 1.0);
+                    //float3 rgb = hsv2rgb(float3(sector / 8.0, 1.0, 1.0));
+                    //col = fixed4(rgb, 1.0);
+                    col = sectorColors[sector];
                 }
                 else
                 {
