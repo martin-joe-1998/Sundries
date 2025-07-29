@@ -5,22 +5,23 @@
         _CircleWidth ("Circle Width", Range(0.0, 0.1)) = 0.05
         _InnerRadius ("Inner Radius", Range(0.0, 0.45)) = 0.45
         _CircleAngleOffset ("Circle Angle Offset", Range(0.0, 359.0)) = 67.5
-        //_CircleColor ("Circle Color", Color) = (1, 1, 1, 1)
-        [HDR] _SectorColor0 ("Sector 0 Color", Color) = (1,0,0,1)
-        [HDR] _SectorColor1 ("Sector 1 Color", Color) = (1,0.5,0,1)
-        [HDR] _SectorColor2 ("Sector 2 Color", Color) = (1,1,0,1)
-        [HDR] _SectorColor3 ("Sector 3 Color", Color) = (0,1,0,1)
-        [HDR] _SectorColor4 ("Sector 4 Color", Color) = (0,1,1,1)
-        [HDR] _SectorColor5 ("Sector 5 Color", Color) = (0,0,1,1)
-        [HDR] _SectorColor6 ("Sector 6 Color", Color) = (0.5,0,1,1)
-        [HDR] _SectorColor7 ("Sector 7 Color", Color) = (1,0,1,1)
+        [HDR] _SectorColor0 ("Sector 0 Color", Color) = (1,   0,   0, 0.5)
+        [HDR] _SectorColor1 ("Sector 1 Color", Color) = (1,   0.5, 0, 0.5)
+        [HDR] _SectorColor2 ("Sector 2 Color", Color) = (1,   1,   0, 0.5)
+        [HDR] _SectorColor3 ("Sector 3 Color", Color) = (0,   1,   0, 0.5)
+        [HDR] _SectorColor4 ("Sector 4 Color", Color) = (0,   1,   1, 0.5)
+        [HDR] _SectorColor5 ("Sector 5 Color", Color) = (0,   0,   1, 0.5)
+        [HDR] _SectorColor6 ("Sector 6 Color", Color) = (0.5, 0,   1, 0.5)
+        [HDR] _SectorColor7 ("Sector 7 Color", Color) = (1,   0,   1, 0.5)
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Transparent" "Queue"="Transparent" }
 
         Pass
         {
+            Blend SrcAlpha OneMinusSrcAlpha 
+            
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -39,13 +40,9 @@
                 float4 vertex : SV_POSITION;
             };
 
-            //sampler2D _MainTex;
-            //float4 _MainTex_ST;
-
             float _CircleWidth;
             float _InnerRadius;
             float _CircleAngleOffset;
-            //fixed4 _CircleColor;
             fixed4 _SectorColor0;
             fixed4 _SectorColor1;
             fixed4 _SectorColor2;
@@ -91,6 +88,7 @@
             {
                 // 適当にベースカラーを決める
                 fixed4 col = fixed4(0.0, 0.0, 0.0, 1.0);
+                // 各セクターの色情報
                 fixed4 sectorColors[8] = {
                     _SectorColor0, _SectorColor1, _SectorColor2, _SectorColor3,
                     _SectorColor4, _SectorColor5, _SectorColor6, _SectorColor7
@@ -113,16 +111,19 @@
                 float innerRadius = _InnerRadius;
                 float outerRadius = innerRadius + circleWidth;
 
+                // 各ピクセルと中心点との距離
                 float dist = length(newUV);
                 // リングの範囲を判定
                 float isInRing = step(innerRadius, dist) * step(dist, outerRadius);
 
+                // リング内の各セクターの色を決める
                 if (isInRing > 0.0)
                 {
-                    // 同じレーンの色を同じにする
-                    //float3 rgb = hsv2rgb(float3(sector / 8.0, 1.0, 1.0));
-                    //col = fixed4(rgb, 1.0);
                     col = sectorColors[sector];
+                }
+                else if (dist < innerRadius)
+                {
+                    col = fixed4(0.5, 0.5, 0.5, 0.2);
                 }
                 else
                 {
