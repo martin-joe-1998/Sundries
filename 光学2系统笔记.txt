@@ -199,3 +199,84 @@ Step 2：使用 std::unordered_map<size_t, Component*>
     		return static_cast<T*>(it->second);
     	return nullptr;
     }
+
+
+如何让swap chain支持hdr:
+    ・路线 A：HDR10（PQ，BT.2020）
+
+        交换链格式：DXGI_FORMAT_R10G10B10A2_UNORM
+        色彩空间：DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020
+        HDR 元数据：通过 IDXGISwapChain4::SetHDRMetaData（类型 DXGI_HDR_METADATA_HDR10）
+    
+        关键代码片段（D3D11）
+        DXGI_SWAP_CHAIN_DESC1 scd = {};
+        scd.Width       = width;
+        scd.Height      = height;
+        scd.Format      = DXGI_FORMAT_R10G10B10A2_UNORM; // HDR10
+        scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        scd.SampleDesc  = {1, 0};                        // Flip model: no MSAA
+        scd.BufferCount = 2;
+        scd.SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        scd.Scaling     = DXGI_SCALING_STRETCH;
+        scd.AlphaMode   = DXGI_ALPHA_MODE_IGNORE;
+    
+        ComPtr<IDXGISwapChain1> swap1;
+        factory->CreateSwapChainForHwnd(device, hwnd, &scd, nullptr, nullptr, &swap1);
+        ComPtr<IDXGISwapChain3> swap3; swap1.As(&swap3);
+    
+        // 检查并设置色彩空间
+        if (SUCCEEDED(swap3->CheckColorSpaceSupport(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020, &support)) &&
+            (support & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
+        {
+            swap3->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+        }
+    
+        // 可选：设置 HDR10 元数据（Mastering/MaxCLL/MaxFALL）
+        ComPtr<IDXGISwapChain4> swap4; swap3.As(&swap4);
+        DXGI_HDR_METADATA_HDR10 md = {};
+        // 填写 md.RedPrimary/GreenPrimary/BluePrimary/WhitePoint/MaxMasteringLuminance 等（单位：1/50000 和 1/10000）
+        swap4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(md), &md);
+    
+        注意：需要 Windows HDR 打开，显示器支持 HDR10。
+
+    ・路线 B：scRGB（线性浮点 HDR）
+
+        交换链格式：DXGI_FORMAT_R16G16B16A16_FLOAT（你当前就用这个）
+        色彩空间：DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709（scRGB）
+
+        关键代码片段
+        DXGI_SWAP_CHAIN_DESC1 scd = {};
+        scd.Format      = DXGI_FORMAT_R16G16B16A16_FLOAT; // scRGB
+        // 其他同上...
+
+        ComPtr<IDXGISwapChain3> swap3 = ...;
+        if (SUCCEEDED(swap3->CheckColorSpaceSupport(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709, &support)) &&
+            (support & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
+        {
+            swap3->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+        }
+
+        特点：色域 BT.709，线性浮点，可超出 0..1 的亮度范围（scRGB 允许 >1），系统在 HDR 显示上做映射。很多桌面 HDR 应用用这条路线比较简单。
+
+    
+    ・你的代码改动要点（从你现状出发）
+
+        把旧的 DXGI_SWAP_CHAIN_DESC 替换为 DXGI_SWAP_CHAIN_DESC1 + CreateSwapChainForHwnd。
+
+        改为 Flip Model：SwapEffect = FLIP_DISCARD，BufferCount = 2，SampleDesc.Count = 1，去掉 ALLOW_MODE_SWITCH。
+
+        选一条 HDR 路线并 SetColorSpace1。
+
+        保持你的 bloom 在离屏 FP16/FP32 RT 里做，最后一个 pass：
+
+        HDR10：映射到 BT.2020 + PQ（含 OOTF），输出到 R10G10B10A2 交换链
+
+        scRGB：直接线性输出到 R16F 交换链，值可 >1（例如 bloom 强度）
+
+    ・额外建议（和 bloom 质量相关）
+
+        Tone mapping：在 HDR10 路线里最后要做 PQ 编码；在 scRGB 路线里可省略 PQ，但最好仍做 tone map 以避免过曝/剪切。
+
+        SRGB/Linear：确保整条后处理链在 Linear 空间下运算，采样的 sRGB 纹理使用 sRGB SRV。
+
+        MSAA：在离屏做（MSAA RT → Resolve 到非 MSAA RT），再 Blit 到交换链（Flip model backbuffer 不能是 MSAA）。
