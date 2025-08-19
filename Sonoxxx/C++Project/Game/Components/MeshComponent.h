@@ -18,10 +18,11 @@ namespace sl
 	{
 		ECircle, // 一旦はBaumkuchenのシェーダを使う
 		EPizza,
-		EBaumkuchen,
+		EBaumkuchen, // Spectrum
 		ELine,
 		EImage,
-		EText
+		EText,
+		ESpectrum
 	};
 
 	/// <summary>

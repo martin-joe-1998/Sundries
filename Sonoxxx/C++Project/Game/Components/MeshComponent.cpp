@@ -65,6 +65,10 @@ namespace sl
 			TfCBufferMapping(dc);
 			ColorCBufferMapping(dc, Vector4(0.f, 1.f, 1.f, 1.f));
 			break;
+			// Spectrum
+		case ESpectrum:
+			TfCBufferMapping(dc);
+			break;
 		default:
 			
 			break;
@@ -108,6 +112,10 @@ namespace sl
 		case ELine:
 			deviceContext->PSSetConstantBuffers(3, 1, &cbLi);
 			break;
+			// Spectrum
+		case ESpectrum:
+			// Set cbuffer here
+			break;
 		}
 
 		// Blend State
@@ -120,7 +128,17 @@ namespace sl
 			renderer.GetDeviceContext()->OMSetBlendState(renderer.GetBlendState(), blendFactor, sampleMask);
 		}
 
-		deviceContext->DrawIndexed(6, 0, 0);
+		// Spectrum
+		if (mMeshType == ESpectrum)
+		{
+			deviceContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr); // 不绑定VB
+			//deviceContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_R16_UINT, 0);
+			deviceContext->IASetInputLayout(nullptr); // 不绑定InputLayout
+			deviceContext->Draw(6 * 256, 0);
+		}
+		else {
+			deviceContext->DrawIndexed(6, 0, 0);
+		}
 
 		// Draw が完了したら、Blend stateを元に戻し、不透明物体の DrawCall への汚染を防止
 		if (mOwner->GetRenderType() == "Transparent")
@@ -161,6 +179,10 @@ namespace sl
 		case EText:
 			mShader->Load(renderer.GetDevice(), renderer.GetDeviceContext(), L"Assets/Shaders/ImageShader.hlsl", "VShader", "PShader");
 			break;
+			// Spectrum
+		case ESpectrum:
+			mShader->Load(renderer.GetDevice(), renderer.GetDeviceContext(), L"Assets/Shaders/SpectrumShader.hlsl", "VShader", "PShader");
+			break;
 		default:
 			break;
 		}
@@ -199,7 +221,7 @@ namespace sl
 
 	void MeshComponent::TfCBufferMapping(ID3D11DeviceContext* deviceContext)
 	{
-		// WVP;
+		// MVP;
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
 		HRESULT hr = deviceContext->Map(mCBuffer->GetTransFormCBuffer(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		if (FAILED(hr))
